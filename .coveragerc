@@ -1,5 +1,6 @@
 [run]
-branch = true
+include =  django_orghierarchy/*
+omit = *migrations*
 
 [report]
 omit =

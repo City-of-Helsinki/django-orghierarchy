@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
@@ -12,7 +12,7 @@ class TestGetDataSourceModel(TestCase):
         model = get_data_source_model()
         self.assertIs(model, DataSource)
 
+    @patch('swapper.load_model', MagicMock())
     def test_get_data_source_model_swapper_load_model_called(self):
-        swapper.load_model = MagicMock()
         get_data_source_model()
         self.assertTrue(swapper.load_model.called)

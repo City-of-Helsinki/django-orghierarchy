@@ -31,3 +31,7 @@ htmlcov
 
 # Translations
 *.mo
+
+# sqlite db
+db.sqlite3
+

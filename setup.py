@@ -18,7 +18,7 @@ setup(
     url='https://github.com/City-of-Helsinki/django-orghierarchy',
     author='City of Helsinki',
     author_email='dev@hel.fi',
-    install_requires=['swapper'],
+    install_requires=['djangorestframework', 'swapper'],
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',

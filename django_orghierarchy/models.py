@@ -47,6 +47,8 @@ class Organization(models.Model):
     dissolution_date = models.DateField(blank=True, null=True, help_text=_('A date of dissolution'))
     parent = models.ForeignKey('self', null=True, blank=True,
                                help_text=_('The organizations that contain this organization'))
+    responsible_organization = models.ForeignKey('self', null=True, blank=True, related_name='affiliated_organization',
+                                                 help_text=_('Responsible organization'))
 
     created_at = models.DateTimeField(auto_now_add=True, help_text=_('The time at which the resource was created'))
     modified_at = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))

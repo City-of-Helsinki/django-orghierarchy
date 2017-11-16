@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from .forms import OrganizationForm
 from .models import OrganizationClass, Organization
 from .utils import get_data_source_model
 
@@ -17,6 +18,7 @@ class OrganizationClassAdmin(admin.ModelAdmin):
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ('data_source', 'classification', 'name')
+    form = OrganizationForm
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

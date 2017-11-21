@@ -28,3 +28,14 @@ Run tests
 
     python manage.py test --tag=custom_ds --settings=tests.test_app.settings_custom_ds
     python manage.py test --tag=custom_pk_ds --settings=tests.test_app.settings_custom_pk_ds
+
+
+## Import Organization Data
+
+Import organization data from a REST API endpoint
+
+    python manage.py rest_import "http://example.com/v1/organization/"
+    
+If the data source needs to be renamed, provides a new data source name to replace the old one:
+
+    python manage.py rest_import "http://example.com/v1/organization/" -s old_name:new_name

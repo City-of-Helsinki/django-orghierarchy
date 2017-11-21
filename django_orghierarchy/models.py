@@ -1,5 +1,5 @@
 import swapper
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -9,7 +9,7 @@ class AbstractDataSource(models.Model):
     Abstract data source model that provides required fields
     for custom data source model.
     """
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     class Meta:
         abstract = True
@@ -30,15 +30,16 @@ class DataSource(AbstractDataSource):
 
 
 class OrganizationClass(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
 
 
 class Organization(models.Model):
+    id = models.CharField(max_length=255, primary_key=True, editable=False)
     data_source = models.ForeignKey(swapper.get_model_name('django_orghierarchy', 'DataSource'), blank=True, null=True)
-    origin_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    origin_id = models.CharField(max_length=255, unique=True)
 
     classification = models.ForeignKey(OrganizationClass, on_delete=models.PROTECT,
                                        help_text=_('An organization category, e.g. committee'))
@@ -61,3 +62,12 @@ class Organization(models.Model):
             return '{0} / {1}'.format(self.parent, self.name)
         else:
             return self.name
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        if self.id:
+            self.delete()  # We need to delete old object as changing id field will always create new object.
+
+        # Note that the organization id will not be updated if the name of the data source is changed.
+        self.id = '{0}:{1}'.format(self.data_source.name, self.origin_id)
+        return super().save(*args, **kwargs)

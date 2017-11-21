@@ -17,6 +17,7 @@ class OrganizationClassAdmin(admin.ModelAdmin):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
     list_display = ('data_source', 'classification', 'name')
     form = OrganizationForm
 

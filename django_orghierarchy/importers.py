@@ -50,6 +50,7 @@ class RestAPIImporter:
                 from source data; if the data type is 'link', it will return the data fetched
                 from the link; if the data type is 'regex', it will return the value extracted
                 from the given pattern.
+        - rename_data_source: Data sources that are renamed during import.
 
     Example config:
         {
@@ -65,6 +66,10 @@ class RestAPIImporter:
                 'parent': {
                     'data_type': 'link',
                 }
+            },
+            'rename_data_source': {
+                'original_name_1': 'new_name_1',
+                'original_name_2': 'new_name_2',
             }
         }
     """
@@ -121,6 +126,11 @@ class RestAPIImporter:
         """Object key that stores the list of organizations"""
         return self.config['results_key']
 
+    @property
+    def rename_data_source(self):
+        """Data source renaming configs"""
+        return self.config.get('rename_data_source') or {}
+
     def _get_organization_class(self, data):
         """Get organization class for the given object data
 
@@ -140,6 +150,11 @@ class RestAPIImporter:
         then get from database if not cached.
         """
         name = data['name']
+
+        if name in self.rename_data_source:
+            name = self.rename_data_source[name]
+            data['name'] = name
+
         if name not in self._data_sources:
             data_source_model = get_data_source_model()
             data_source, _ = data_source_model.objects.get_or_create(**data)

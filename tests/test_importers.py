@@ -143,6 +143,13 @@ class TestRestApiImporter(TestCase):
         self.importer._get_data_source(data)
         self.assertEqual(data_source_model.objects.count(), 1)  # fetched from cached
 
+        self.importer.config['rename_data_source'] = {
+            'test-source': 'new-source-name'
+        }
+        data_source = self.importer._get_data_source(data)
+        self.assertEqual(data_source.name, 'new-source-name')
+        self.assertEqual(data_source_model.objects.count(), 2)
+
     @patch('requests.get', MagicMock(side_effect=mock_request_get))
     def test_import_data(self):
         self.importer.import_data()

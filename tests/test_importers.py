@@ -124,6 +124,25 @@ class TestRestApiImporter(TestCase):
         self.importer.config['fields'] = ['field_a', 'field_b']
         self.assertSetEqual(self.importer.fields, {'field_a', 'field_b'})
 
+    def test_get_organization_class(self):
+        data = {'name': 'test-class'}
+        organization_class = self.importer._get_organization_class(data)
+        self.assertEqual(organization_class.name, 'test-class')
+        self.assertEqual(OrganizationClass.objects.count(), 1)
+
+        self.importer._get_organization_class(data)
+        self.assertEqual(OrganizationClass.objects.count(), 1)  # fetched from cached
+
+    def test_get_data_source(self):
+        data = {'name': 'test-source'}
+        data_source = self.importer._get_data_source(data)
+        self.assertEqual(data_source.name, 'test-source')
+        data_source_model = get_data_source_model()
+        self.assertEqual(data_source_model.objects.count(), 1)
+
+        self.importer._get_data_source(data)
+        self.assertEqual(data_source_model.objects.count(), 1)  # fetched from cached
+
     @patch('requests.get', MagicMock(side_effect=mock_request_get))
     def test_import_data(self):
         self.importer.import_data()

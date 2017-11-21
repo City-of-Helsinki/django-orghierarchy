@@ -100,6 +100,9 @@ class RestAPIImporter:
             'parent': self._import_organization,
         }
 
+        self._organization_classes = {}
+        self._data_sources = {}
+
     @property
     def fields(self):
         return set(self.config['fields'])
@@ -117,6 +120,31 @@ class RestAPIImporter:
     def results_key(self):
         """Object key that stores the list of organizations"""
         return self.config['results_key']
+
+    def _get_organization_class(self, data):
+        """Get organization class for the given object data
+
+        The method will first try to get the organization class from cache, and
+        then get from database if not cached.
+        """
+        name = data['name']
+        if name not in self._organization_classes:
+            organization_class, _ = OrganizationClass.objects.get_or_create(**data)
+            self._organization_classes[name] = organization_class
+        return self._organization_classes[name]
+
+    def _get_data_source(self, data):
+        """Get data source for the given object data
+
+        The method will first try to get the data source from cache, and
+        then get from database if not cached.
+        """
+        name = data['name']
+        if name not in self._data_sources:
+            data_source_model = get_data_source_model()
+            data_source, _ = data_source_model.objects.get_or_create(**data)
+            self._data_sources[name] = data_source
+        return self._data_sources[name]
 
     def import_data(self):
         """Import data"""
@@ -161,9 +189,7 @@ class RestAPIImporter:
         else:
             object_data = {'name': data}
 
-        model = get_data_source_model()
-        data_source, _ = model.objects.get_or_create(**object_data)
-        return data_source
+        return self._get_data_source(object_data)
 
     def _import_organization_class(self, data):
         """Import organization class.
@@ -176,8 +202,7 @@ class RestAPIImporter:
         else:
             object_data = {'name': data}
 
-        organization_class, _ = OrganizationClass.objects.get_or_create(**object_data)
-        return organization_class
+        return self._get_organization_class(object_data)
 
     def _data_iter(self, url):
         """Iterate over data items in the REST API endpoint.

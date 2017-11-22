@@ -149,17 +149,17 @@ class RestAPIImporter:
         The method will first try to get the data source from cache, and
         then get from database if not cached.
         """
-        name = data['name']
+        identifier = data['id']
 
-        if name in self.rename_data_source:
-            name = self.rename_data_source[name]
-            data['name'] = name
+        if identifier in self.rename_data_source:
+            identifier = self.rename_data_source[identifier]
+            data['id'] = identifier
 
-        if name not in self._data_sources:
+        if identifier not in self._data_sources:
             data_source_model = get_data_source_model()
             data_source, _ = data_source_model.objects.get_or_create(**data)
-            self._data_sources[name] = data_source
-        return self._data_sources[name]
+            self._data_sources[identifier] = data_source
+        return self._data_sources[identifier]
 
     def import_data(self):
         """Import data"""
@@ -197,12 +197,12 @@ class RestAPIImporter:
         """Import data source
 
         If a single value is provided to data_source field, it assume it's
-        the name of the data source.
+        the id of the data source.
         """
         if isinstance(data, dict):
-            object_data = {k: v for k, v in data.items() if k != 'id'}
+            object_data = data
         else:
-            object_data = {'name': data}
+            object_data = {'id': data}
 
         return self._get_data_source(object_data)
 

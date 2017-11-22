@@ -18,14 +18,16 @@ class Command(BaseCommand):
             '--rename-data-source',
             dest='rename_data_source',
             nargs='+',
-            help='Rename data sources. Renaming should be specified as <old_name>:<new_name>'
+            help='Rename data sources. Renaming should be specified as <old_identifier>:<new_identifier>'
         )
 
     def _parse_rename_data_source(self, value):
         try:
             old_name, new_name = value.split(':')
         except ValueError:
-            raise CommandError('Invalid data source renaming. Renaming should be specified as <old_name>:<new_name>')
+            raise CommandError(
+                'Invalid data source renaming. Renaming should be specified as <old_identifier>:<new_identifier>'
+            )
 
         return old_name.strip(), new_name.strip()
 

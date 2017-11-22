@@ -9,7 +9,8 @@ class AbstractDataSource(models.Model):
     Abstract data source model that provides required fields
     for custom data source model.
     """
-    name = models.CharField(max_length=255, unique=True)
+    id = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=255)
 
     class Meta:
         abstract = True
@@ -69,5 +70,5 @@ class Organization(models.Model):
             self.delete()  # We need to delete old object as changing id field will always create new object.
 
         # Note that the organization id will not be updated if the name of the data source is changed.
-        self.id = '{0}:{1}'.format(self.data_source.name, self.origin_id)
+        self.id = '{0}:{1}'.format(self.data_source_id, self.origin_id)
         return super().save(*args, **kwargs)

@@ -134,9 +134,9 @@ class TestRestApiImporter(TestCase):
         self.assertEqual(OrganizationClass.objects.count(), 1)  # fetched from cached
 
     def test_get_data_source(self):
-        data = {'name': 'test-source'}
+        data = {'id': 'test-source'}
         data_source = self.importer._get_data_source(data)
-        self.assertEqual(data_source.name, 'test-source')
+        self.assertEqual(data_source.id, 'test-source')
         data_source_model = get_data_source_model()
         self.assertEqual(data_source_model.objects.count(), 1)
 
@@ -147,7 +147,7 @@ class TestRestApiImporter(TestCase):
             'test-source': 'new-source-name'
         }
         data_source = self.importer._get_data_source(data)
-        self.assertEqual(data_source.name, 'new-source-name')
+        self.assertEqual(data_source.id, 'new-source-name')
         self.assertEqual(data_source_model.objects.count(), 2)
 
     @patch('requests.get', MagicMock(side_effect=mock_request_get))
@@ -185,19 +185,17 @@ class TestRestApiImporter(TestCase):
         data_source_model = get_data_source_model()
         qs = data_source_model.objects.all()
         self.assertQuerysetEqual(qs, [repr(data_source)])
-        self.assertEqual(data_source.name, 'test-data-source')
+        self.assertEqual(data_source.id, 'test-data-source')
 
     def test_import_data_source_with_dict_data(self):
         data = {
-            'id': 999,
-            'name': 'test-data-source'
+            'id': 'test-data-source'
         }
         data_source = self.importer._import_data_source(data)
         data_source_model = get_data_source_model()
         qs = data_source_model.objects.all()
         self.assertQuerysetEqual(qs, [repr(data_source)])
-        self.assertEqual(data_source.name, 'test-data-source')
-        self.assertNotEqual(data_source.id, 999)
+        self.assertEqual(data_source.id, 'test-data-source')
 
     def test_import_organization_class_with_string(self):
         organization_class = self.importer._import_organization_class('test-org-class')
@@ -297,7 +295,7 @@ class TestRestApiImporter(TestCase):
     @patch('requests.get', MagicMock(side_effect=mock_request_get))
     def test_get_field_value_related_fields(self):
         value = self.importer._get_field_value(organization_1, 'data_source', {})
-        self.assertEqual(value.name, 'test-source-1')
+        self.assertEqual(value.id, 'test-source-1')
 
         value = self.importer._get_field_value(organization_1, 'classification', {})
         self.assertEqual(value.name, 'test-class-1')

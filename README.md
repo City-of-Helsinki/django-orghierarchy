@@ -34,8 +34,8 @@ Run tests
 
 Import organization data from a REST API endpoint
 
-    python manage.py rest_import "http://example.com/v1/organization/"
+    python manage.py import_organizations "http://example.com/v1/organization/"
     
 If the data source needs to be renamed, provides a new data source name to replace the old one:
 
-    python manage.py rest_import "http://example.com/v1/organization/" -s old_name:new_name
+    python manage.py import_organizations "http://example.com/v1/organization/" -s old_name:new_name

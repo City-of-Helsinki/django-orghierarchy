@@ -1,6 +1,7 @@
 import swapper
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
+from mptt.models import MPTTModel, TreeForeignKey
 
 
 class AbstractDataSource(models.Model):
@@ -37,7 +38,7 @@ class OrganizationClass(models.Model):
         return self.name
 
 
-class Organization(models.Model):
+class Organization(MPTTModel):
     id = models.CharField(max_length=255, primary_key=True, editable=False)
     data_source = models.ForeignKey(swapper.get_model_name('django_orghierarchy', 'DataSource'), blank=True, null=True)
     origin_id = models.CharField(max_length=255, unique=True)
@@ -47,8 +48,8 @@ class Organization(models.Model):
     name = models.CharField(max_length=255, help_text=_('A primary name, e.g. a legally recognized name'))
     founding_date = models.DateField(blank=True, null=True, help_text=_('A date of founding'))
     dissolution_date = models.DateField(blank=True, null=True, help_text=_('A date of dissolution'))
-    parent = models.ForeignKey('self', null=True, blank=True,
-                               help_text=_('The organizations that contain this organization'))
+    parent = TreeForeignKey('self', null=True, blank=True, related_name='children',
+                            help_text=_('The organizations that contain this organization'))
     responsible_organization = models.ForeignKey('self', null=True, blank=True, related_name='affiliated_organization',
                                                  help_text=_('Responsible organization'))
 
@@ -59,16 +60,12 @@ class Organization(models.Model):
         unique_together = ('data_source', 'origin_id')
 
     def __str__(self):
-        if self.parent:
-            return '{0} / {1}'.format(self.parent, self.name)
-        else:
-            return self.name
+        org_hierarchy = self.get_ancestors(include_self=True).values_list('name', flat=True)
+        return ' / '.join(org_hierarchy)
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        if self.id:
-            self.delete()  # We need to delete old object as changing id field will always create new object.
-
-        # Note that the organization id will not be updated if the name of the data source is changed.
-        self.id = '{0}:{1}'.format(self.data_source_id, self.origin_id)
-        return super().save(*args, **kwargs)
+        if not self.id:
+            # the id is only set when creating object, it cannot be changed later
+            self.id = '{0}:{1}'.format(self.data_source_id, self.origin_id)
+        super().save(*args, **kwargs)

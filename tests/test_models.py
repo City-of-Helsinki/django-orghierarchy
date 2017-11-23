@@ -24,12 +24,11 @@ class TestOrganizationClass(TestCase):
 class TestOrganization(TestCase):
 
     def setUp(self):
-        self.organization = OrganizationFactory(name='test name')
+        self.parent_organization = OrganizationFactory(name='parent name')
+        self.organization = OrganizationFactory(name='test name', parent=self.parent_organization)
 
     def test__str__(self):
-        self.assertEqual(self.organization.__str__(), 'test name')
-
-        self.organization.parent = OrganizationFactory(name='parent name')
+        self.assertEqual(self.parent_organization.__str__(), 'parent name')
         self.assertEqual(self.organization.__str__(), 'parent name / test name')
 
     def test_save(self):
@@ -39,4 +38,5 @@ class TestOrganization(TestCase):
 
         organization.origin_id = 'XYZ'
         organization.save()
-        self.assertEqual(organization.id, 'data-source:XYZ')
+        # test the id is not changed
+        self.assertEqual(organization.id, 'data-source:ABC123')

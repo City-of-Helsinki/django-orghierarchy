@@ -1,13 +1,18 @@
+import swapper
 from django.contrib import admin
 
 from .forms import OrganizationForm
 from .models import OrganizationClass, Organization
 from .utils import get_data_source_model
 
-
-@admin.register(get_data_source_model())
-class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+data_source_model = swapper.get_model_name('django_orghierarchy', 'DataSource')
+# Only register admin when using default data source model
+# When the data source model is swapped, client code should
+# be responsible for creating admin page for the model
+if data_source_model == 'django_orghierarchy.DataSource':
+    @admin.register(get_data_source_model())
+    class DataSourceAdmin(admin.ModelAdmin):
+        list_display = ('id', 'name')
 
 
 @admin.register(OrganizationClass)

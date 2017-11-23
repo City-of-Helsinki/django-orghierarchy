@@ -4,7 +4,7 @@ from django.test import TestCase, RequestFactory
 
 from django_orghierarchy.admin import OrganizationAdmin
 from django_orghierarchy.models import DataSource, Organization
-from .factories import OrganizationFactory
+from .factories import OrganizationClassFactory, OrganizationFactory
 from .utils import make_admin
 
 
@@ -32,3 +32,20 @@ class TestOrganizationAdmin(TestCase):
         organization = oa.get_queryset(request).first()
         self.assertNumQueries(0, getattr, organization, 'data_source')
         self.assertNumQueries(0, getattr, organization, 'classification')
+
+    def test_save_model(self):
+        oa = OrganizationAdmin(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.admin
+
+        organization_class = OrganizationClassFactory()
+        organization = OrganizationFactory.build(classification=organization_class)
+        oa.save_model(request, organization, None, None)
+        self.assertEqual(organization.created_by, self.admin)
+        self.assertEqual(organization.modified_by, self.admin)
+
+        another_admin = make_admin(username='another_admin')
+        request.user = another_admin
+        oa.save_model(request, organization, None, None)
+        self.assertEqual(organization.created_by, self.admin)
+        self.assertEqual(organization.modified_by, another_admin)

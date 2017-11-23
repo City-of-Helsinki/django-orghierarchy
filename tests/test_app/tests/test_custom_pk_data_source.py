@@ -1,7 +1,8 @@
+from django.contrib import admin
 from django.test import TestCase, tag
 
 from django_orghierarchy import get_data_source_model
-from django_orghierarchy.models import Organization
+from django_orghierarchy.models import DataSource, Organization
 from ..models import CustomPrimaryKeyDataSource
 
 
@@ -15,3 +16,7 @@ class TestCustomPrimaryKeyDataSource(TestCase):
     def test_related_data_source_model(self):
         field = Organization._meta.get_field('data_source')
         self.assertIs(field.related_model, CustomPrimaryKeyDataSource)
+
+    def test_default_data_source_admin_not_registered(self):
+        is_registered = admin.site.is_registered(DataSource)
+        self.assertFalse(is_registered)

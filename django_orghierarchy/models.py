@@ -1,4 +1,5 @@
 import swapper
+from django.conf import settings
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
@@ -34,6 +35,10 @@ class DataSource(AbstractDataSource):
 class OrganizationClass(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
+    class Meta:
+        verbose_name = _('Organization class')
+        verbose_name_plural = _('Organization classes')
+
     def __str__(self):
         return self.name
 
@@ -55,6 +60,10 @@ class Organization(MPTTModel):
 
     created_at = models.DateTimeField(auto_now_add=True, help_text=_('The time at which the resource was created'))
     modified_at = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_organizations',
+                                   null=True, blank=True, editable=False)
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='modified_organizations',
+                                    null=True, blank=True, editable=False)
 
     class Meta:
         unique_together = ('data_source', 'origin_id')

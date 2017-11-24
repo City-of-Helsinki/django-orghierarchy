@@ -24,6 +24,7 @@ class OrganizationClassAdmin(admin.ModelAdmin):
 class OrganizationAdmin(admin.ModelAdmin):
     readonly_fields = ('id',)
     list_display = ('id', 'classification', 'name')
+    filter_horizontal = ('admin_users', 'regular_users')
     form = OrganizationForm
 
     def get_queryset(self, request):

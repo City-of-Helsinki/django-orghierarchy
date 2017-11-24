@@ -61,11 +61,11 @@ class Organization(MPTTModel):
     regular_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
                                            related_name='organization_memberships')
 
-    created_at = models.DateTimeField(auto_now_add=True, help_text=_('The time at which the resource was created'))
-    modified_at = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))
+    created_time = models.DateTimeField(auto_now_add=True, help_text=_('The time at which the resource was created'))
+    last_modified_time = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_organizations',
                                    null=True, blank=True, editable=False)
-    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='modified_organizations',
+    last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='modified_organizations',
                                     null=True, blank=True, editable=False)
 
     class Meta:

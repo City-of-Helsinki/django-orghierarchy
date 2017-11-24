@@ -36,8 +36,8 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(help_text='A primary name, e.g. a legally recognized name', max_length=255)),
                 ('founding_date', models.DateField(blank=True, help_text='A date of founding', null=True)),
                 ('dissolution_date', models.DateField(blank=True, help_text='A date of dissolution', null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True, help_text='The time at which the resource was created')),
-                ('modified_at', models.DateTimeField(auto_now=True, help_text='The time at which the resource was updated')),
+                ('created_time', models.DateTimeField(auto_now_add=True, help_text='The time at which the resource was created')),
+                ('last_modified_time', models.DateTimeField(auto_now=True, help_text='The time at which the resource was updated')),
                 ('lft', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('rght', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='organization',
-            name='modified_by',
+            name='last_modified_by',
             field=models.ForeignKey(blank=True, editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='modified_organizations', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(

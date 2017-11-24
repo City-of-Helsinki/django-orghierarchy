@@ -34,5 +34,5 @@ class OrganizationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             obj.created_by = request.user
-        obj.modified_by = request.user
+        obj.last_modified_by = request.user
         obj.save()

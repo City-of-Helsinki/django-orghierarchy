@@ -42,10 +42,10 @@ class TestOrganizationAdmin(TestCase):
         organization = OrganizationFactory.build(classification=organization_class)
         oa.save_model(request, organization, None, None)
         self.assertEqual(organization.created_by, self.admin)
-        self.assertEqual(organization.modified_by, self.admin)
+        self.assertEqual(organization.last_modified_by, self.admin)
 
         another_admin = make_admin(username='another_admin')
         request.user = another_admin
         oa.save_model(request, organization, None, None)
         self.assertEqual(organization.created_by, self.admin)
-        self.assertEqual(organization.modified_by, another_admin)
+        self.assertEqual(organization.last_modified_by, another_admin)

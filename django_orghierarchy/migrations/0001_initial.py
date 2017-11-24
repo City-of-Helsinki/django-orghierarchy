@@ -89,4 +89,9 @@ class Migration(migrations.Migration):
             name='organization',
             unique_together=set([('data_source', 'origin_id')]),
         ),
+        migrations.AddField(
+            model_name='organization',
+            name='admin_users',
+            field=models.ManyToManyField(blank=True, related_name='admin_organizations', to=settings.AUTH_USER_MODEL),
+        ),
     ]

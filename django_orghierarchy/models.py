@@ -48,7 +48,7 @@ class Organization(MPTTModel):
     data_source = models.ForeignKey(swapper.get_model_name('django_orghierarchy', 'DataSource'), blank=True, null=True)
     origin_id = models.CharField(max_length=255, unique=True)
 
-    classification = models.ForeignKey(OrganizationClass, on_delete=models.PROTECT,
+    classification = models.ForeignKey(OrganizationClass, on_delete=models.PROTECT, blank=True, null=True,
                                        help_text=_('An organization category, e.g. committee'))
     name = models.CharField(max_length=255, help_text=_('A primary name, e.g. a legally recognized name'))
     founding_date = models.DateField(blank=True, null=True, help_text=_('A date of founding'))

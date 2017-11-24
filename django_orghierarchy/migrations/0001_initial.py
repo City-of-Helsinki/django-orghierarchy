@@ -94,4 +94,9 @@ class Migration(migrations.Migration):
             name='admin_users',
             field=models.ManyToManyField(blank=True, related_name='admin_organizations', to=settings.AUTH_USER_MODEL),
         ),
+        migrations.AddField(
+            model_name='organization',
+            name='regular_users',
+            field=models.ManyToManyField(blank=True, related_name='organization_memberships', to=settings.AUTH_USER_MODEL),
+        ),
     ]

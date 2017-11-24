@@ -58,6 +58,8 @@ class Organization(MPTTModel):
     responsible_organization = models.ForeignKey('self', null=True, blank=True, related_name='affiliated_organization',
                                                  help_text=_('Responsible organization'))
     admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='admin_organizations')
+    regular_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
+                                           related_name='organization_memberships')
 
     created_at = models.DateTimeField(auto_now_add=True, help_text=_('The time at which the resource was created'))
     modified_at = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))

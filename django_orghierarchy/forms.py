@@ -10,7 +10,8 @@ class OrganizationForm(forms.ModelForm):
         fields = (
             'data_source', 'origin_id', 'classification',
             'name', 'founding_date', 'dissolution_date',
-            'parent', 'responsible_organization',
+            'parent', 'responsible_organization', 'admin_users',
+            'regular_users',
         )
 
     def __init__(self, *args, **kwargs):

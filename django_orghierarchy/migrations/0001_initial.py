@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='organization',
             name='classification',
-            field=models.ForeignKey(help_text='An organization category, e.g. committee', on_delete=django.db.models.deletion.PROTECT, to='django_orghierarchy.OrganizationClass'),
+            field=models.ForeignKey(blank=True, help_text='An organization category, e.g. committee', null=True, on_delete=django.db.models.deletion.PROTECT, to='django_orghierarchy.OrganizationClass'),
         ),
         migrations.AddField(
             model_name='organization',

@@ -42,6 +42,7 @@ class RestAPIImporter:
         - next_key: The url to the next page if the source data is paginated.
         - results_key: The object key to the list of organization objects.
         - fields: The fields of which the values will be imported.
+        - update_fields: The fields to update if the organization with same origin_id exists.
         - field_config: Configs for each field. Config options:
             - source_field: The source data object key where the field value comes from.
                 Defaults to original field name.
@@ -56,7 +57,8 @@ class RestAPIImporter:
         {
             'next_key': 'next',
             'results_key: 'results',
-            'fields': ['origin_id', 'data_source'],
+            'fields': ['origin_id', 'data_source', 'classification'],
+            'update_fields': ['classification'],
             'field_config': {
                 'origin_id': {
                     'source_field': 'id',
@@ -81,6 +83,10 @@ class RestAPIImporter:
             'data_source', 'origin_id', 'classification',
             'name', 'founding_date', 'dissolution_date',
             'parent',
+        ],
+        'update_fields': [
+            'classification', 'name', 'founding_date',
+            'dissolution_date', 'parent',
         ],
         'field_config': {
             'parent': {
@@ -110,7 +116,11 @@ class RestAPIImporter:
 
     @property
     def fields(self):
-        return set(self.config['fields'])
+        return self.config['fields']
+
+    @property
+    def update_fields(self):
+        return self.config['update_fields']
 
     @property
     def field_config(self):
@@ -183,6 +193,13 @@ class RestAPIImporter:
         try:
             organization = Organization.objects.get(origin_id=origin_id)
             logger.info('Organization already exists: {0}'.format(organization.id))
+
+            for field in self.update_fields:
+                config = self.field_config.get(field) or {}
+                value = self._get_field_value(data, field, config)
+                setattr(organization, field, value)
+            organization.save()
+
             return organization
         except Organization.DoesNotExist:
             object_data = {}

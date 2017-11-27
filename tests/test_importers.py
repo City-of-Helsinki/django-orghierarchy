@@ -8,6 +8,8 @@ from django_orghierarchy.importers import DataImportError, RestAPIImporter
 from django_orghierarchy.models import Organization, OrganizationClass
 from django_orghierarchy.utils import get_data_source_model
 
+from .factories import OrganizationFactory
+
 
 class MockResponse:
 
@@ -108,7 +110,6 @@ class TestRestApiImporter(TestCase):
         importer = RestAPIImporter('http://fake.url/', config)
         self.assertEqual(importer.next_key, 'next_page')
         self.assertEqual(importer.results_key, 'items')
-        self.assertSetEqual(importer.fields, {'classification', 'name', 'parent'})
 
         expected_field_config = {
             'parent': {
@@ -119,10 +120,6 @@ class TestRestApiImporter(TestCase):
             }
         }
         self.assertDictEqual(importer.field_config, expected_field_config)
-
-    def test_fields(self):
-        self.importer.config['fields'] = ['field_a', 'field_b']
-        self.assertSetEqual(self.importer.fields, {'field_a', 'field_b'})
 
     def test_get_organization_class(self):
         data = {'name': 'test-class'}
@@ -179,6 +176,17 @@ class TestRestApiImporter(TestCase):
 
     def test_import_organization_with_string(self):
         self.assertRaises(DataImportError, self.importer._import_organization, 'test-value')
+
+    def test_import_organization_update_existing(self):
+        organization = OrganizationFactory(
+            name='existing-organization',
+            origin_id=organization_2['origin_id'],
+        )
+        self.importer._import_organization(organization_2)
+        organization.refresh_from_db()
+
+        self.assertQuerysetEqual(Organization.objects.all(), [repr(organization)])
+        self.assertEqual(organization.name, 'Organization-2')
 
     def test_import_data_source_with_string(self):
         data_source = self.importer._import_data_source('test-data-source')

@@ -66,7 +66,7 @@ class Organization(MPTTModel):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_organizations',
                                    null=True, blank=True, editable=False)
     last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='modified_organizations',
-                                    null=True, blank=True, editable=False)
+                                         null=True, blank=True, editable=False)
 
     class Meta:
         unique_together = ('data_source', 'origin_id')

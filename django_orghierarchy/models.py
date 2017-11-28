@@ -67,6 +67,8 @@ class Organization(MPTTModel):
                                    null=True, blank=True, editable=False)
     last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='modified_organizations',
                                          null=True, blank=True, editable=False)
+    replaced_by = models.OneToOneField('self', null=True, blank=True, related_name='replaced_organization',
+                                       help_text=_('The organization that replaces this organization'))
 
     class Meta:
         unique_together = ('data_source', 'origin_id')

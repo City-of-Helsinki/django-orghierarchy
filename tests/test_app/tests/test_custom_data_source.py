@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.test import TestCase, tag
 
-from django_orghierarchy import get_data_source_model
+from django_orghierarchy.utils import get_data_source_model
 from django_orghierarchy.models import DataSource, Organization
 from ..models import CustomDataSource
 

@@ -44,9 +44,18 @@ class OrganizationClass(models.Model):
 
 
 class Organization(MPTTModel):
+    NORMAL = 'normal'
+    AFFILIATED = 'affiliated'
+
+    INTERNAL_TYPES = (
+        (NORMAL, _('Normal organization')),
+        (AFFILIATED, _('Affiliated organization')),
+    )
+
     id = models.CharField(max_length=255, primary_key=True, editable=False)
     data_source = models.ForeignKey(swapper.get_model_name('django_orghierarchy', 'DataSource'), blank=True, null=True)
     origin_id = models.CharField(max_length=255, unique=True)
+    internal_type = models.CharField(max_length=20, choices=INTERNAL_TYPES, default=NORMAL)
 
     classification = models.ForeignKey(OrganizationClass, on_delete=models.PROTECT, blank=True, null=True,
                                        help_text=_('An organization category, e.g. committee'))
@@ -55,8 +64,6 @@ class Organization(MPTTModel):
     dissolution_date = models.DateField(blank=True, null=True, help_text=_('A date of dissolution'))
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children',
                             help_text=_('The organizations that contain this organization'))
-    responsible_organization = models.ForeignKey('self', null=True, blank=True, related_name='affiliated_organization',
-                                                 help_text=_('Responsible organization'))
     admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='admin_organizations')
     regular_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
                                            related_name='organization_memberships')
@@ -74,8 +81,7 @@ class Organization(MPTTModel):
         unique_together = ('data_source', 'origin_id')
 
     def __str__(self):
-        org_hierarchy = self.get_ancestors(include_self=True).values_list('name', flat=True)
-        return ' / '.join(org_hierarchy)
+        return self.name
 
     @transaction.atomic
     def save(self, *args, **kwargs):
@@ -83,3 +89,9 @@ class Organization(MPTTModel):
             # the id is only set when creating object, it cannot be changed later
             self.id = '{0}:{1}'.format(self.data_source_id, self.origin_id)
         super().save(*args, **kwargs)
+
+        if self.internal_type == self.AFFILIATED and self.parent:
+            # move affiliated organization as the first child of parent
+            # organization as they need appear before normal child
+            # organization when shown in list
+            self.move_to(self.parent)

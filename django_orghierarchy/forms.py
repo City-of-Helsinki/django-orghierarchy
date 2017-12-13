@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import ugettext as _
 
 from .models import Organization
 
@@ -10,7 +11,7 @@ class OrganizationForm(forms.ModelForm):
         fields = (
             'data_source', 'origin_id', 'classification',
             'name', 'founding_date', 'dissolution_date',
-            'parent', 'responsible_organization', 'admin_users',
+            'internal_type', 'parent', 'admin_users',
             'regular_users', 'replaced_by',
         )
 
@@ -23,5 +24,14 @@ class OrganizationForm(forms.ModelForm):
         # prevent self recursive references
         if self.instance.id:
             self.fields['parent'].queryset = Organization.objects.exclude(id=self.instance.id)
-            self.fields['responsible_organization'].queryset = Organization.objects.exclude(id=self.instance.id)
             self.fields['replaced_by'].queryset = self.fields['replaced_by'].queryset.exclude(id=self.instance.id)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        internal_type = cleaned_data['internal_type']
+        parent = cleaned_data['parent']
+
+        if internal_type == Organization.AFFILIATED and parent is None:
+            raise forms.ValidationError(_('Affiliated organization must have a parent organization'))
+
+        return cleaned_data

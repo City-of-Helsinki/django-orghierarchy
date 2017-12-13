@@ -29,7 +29,7 @@ class TestOrganization(TestCase):
 
     def test__str__(self):
         self.assertEqual(self.parent_organization.__str__(), 'parent name')
-        self.assertEqual(self.organization.__str__(), 'parent name / test name')
+        self.assertEqual(self.organization.__str__(), 'test name')
 
     def test_save(self):
         data_source = DataSourceFactory(id='data-source')

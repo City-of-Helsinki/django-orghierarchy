@@ -40,3 +40,13 @@ class TestOrganizationAdmin(TestCase):
         oa.save_model(request, organization, None, None)
         self.assertEqual(organization.created_by, self.admin)
         self.assertEqual(organization.last_modified_by, another_admin)
+
+    def test_indented_title(self):
+        oa = OrganizationAdmin(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.admin
+
+        self.assertNotIn('color: red;', oa.indented_title(self.organization))
+
+        affiliated_org = OrganizationFactory(internal_type=Organization.AFFILIATED, parent=self.organization)
+        self.assertIn('color: red;', oa.indented_title(affiliated_org))

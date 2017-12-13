@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from django_orghierarchy.models import Organization
 from .factories import DataSourceFactory, OrganizationClassFactory, OrganizationFactory
 
 
@@ -26,6 +27,11 @@ class TestOrganization(TestCase):
     def setUp(self):
         self.parent_organization = OrganizationFactory(name='parent name')
         self.organization = OrganizationFactory(name='test name', parent=self.parent_organization)
+        self.affiliated_organization = OrganizationFactory(
+            name='test aff org',
+            parent=self.parent_organization,
+            internal_type=Organization.AFFILIATED,
+        )
 
     def test__str__(self):
         self.assertEqual(self.parent_organization.__str__(), 'parent name')
@@ -40,3 +46,11 @@ class TestOrganization(TestCase):
         organization.save()
         # test the id is not changed
         self.assertEqual(organization.id, 'data-source:ABC123')
+
+    def test_sub_organizations(self):
+        qs = self.parent_organization.sub_organizations
+        self.assertQuerysetEqual(qs, [repr(self.organization)])
+
+    def test_affiliated_organizations(self):
+        qs = self.parent_organization.affiliated_organizations
+        self.assertQuerysetEqual(qs, [repr(self.affiliated_organization)])

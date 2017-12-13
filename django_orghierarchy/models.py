@@ -95,3 +95,11 @@ class Organization(MPTTModel):
             # organization as they need appear before normal child
             # organization when shown in list
             self.move_to(self.parent)
+
+    @property
+    def sub_organizations(self):
+        return self.children.filter(internal_type=self.NORMAL)
+
+    @property
+    def affiliated_organizations(self):
+        return self.children.filter(internal_type=self.AFFILIATED)

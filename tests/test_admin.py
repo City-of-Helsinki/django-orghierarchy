@@ -24,15 +24,6 @@ class TestOrganizationAdmin(TestCase):
 
         self.organization = OrganizationFactory()
 
-    def test_get_queryset(self):
-        oa = OrganizationAdmin(Organization, self.site)
-        request = self.factory.get('/fake-url/')
-        request.user = self.admin
-
-        organization = oa.get_queryset(request).first()
-        self.assertNumQueries(0, getattr, organization, 'data_source')
-        self.assertNumQueries(0, getattr, organization, 'classification')
-
     def test_save_model(self):
         oa = OrganizationAdmin(Organization, self.site)
         request = self.factory.get('/fake-url/')

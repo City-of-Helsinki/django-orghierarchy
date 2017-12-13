@@ -1,5 +1,6 @@
 import swapper
 from django.contrib import admin
+from mptt.admin import DraggableMPTTAdmin
 
 from .forms import OrganizationForm
 from .models import OrganizationClass, Organization
@@ -21,15 +22,10 @@ class OrganizationClassAdmin(admin.ModelAdmin):
 
 
 @admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
+class OrganizationAdmin(DraggableMPTTAdmin):
     readonly_fields = ('id',)
-    list_display = ('id', 'classification', 'name')
     filter_horizontal = ('admin_users', 'regular_users')
     form = OrganizationForm
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.select_related('data_source', 'classification')
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:

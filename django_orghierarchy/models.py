@@ -90,11 +90,18 @@ class Organization(MPTTModel):
             self.id = '{0}:{1}'.format(self.data_source_id, self.origin_id)
         super().save(*args, **kwargs)
 
-        if self.internal_type == self.AFFILIATED and self.parent:
+        if self.parent:
             # move affiliated organization as the first child of parent
             # organization as they need appear before normal child
-            # organization when shown in list
-            self.move_to(self.parent)
+            # organization when shown in list. We also need to account
+            # for the case that an affiliated organization can be changed
+            # to a normal organization, thus move normal organization to
+            # the last child of parent organization.
+            move_positions = {
+                self.AFFILIATED: 'first-child',
+                self.NORMAL: 'last-child',
+            }
+            self.move_to(self.parent, move_positions[self.internal_type])
 
     @property
     def sub_organizations(self):

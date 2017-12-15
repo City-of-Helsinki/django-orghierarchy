@@ -1,8 +1,8 @@
 from django.test import TestCase
 
-from django_orghierarchy.forms import OrganizationForm
+from django_orghierarchy.forms import OrganizationForm, SubOrganizationForm, AffiliatedOrganizationForm
 from django_orghierarchy.models import Organization
-from .factories import OrganizationFactory
+from .factories import OrganizationClassFactory, DataSourceFactory, OrganizationFactory
 
 
 class TestOrganizationForm(TestCase):
@@ -45,3 +45,65 @@ class TestOrganizationForm(TestCase):
         form_data['parent'] = self.organization.id
         form = OrganizationForm(form_data)
         self.assertTrue(form.is_valid())
+
+
+class TestSubOrganizationForm(TestCase):
+
+    def setUp(self):
+        self.data_source = DataSourceFactory()
+        self.organization_class = OrganizationClassFactory()
+
+    def test__init__(self):
+        form = SubOrganizationForm()
+        self.assertEqual(form.initial['internal_type'], Organization.NORMAL)
+
+        form = SubOrganizationForm(initial={'internal_type': Organization.AFFILIATED})
+        self.assertEqual(form.initial['internal_type'], Organization.NORMAL)
+
+    def test_clean_internal_type(self):
+        form_data = {
+            'internal_type': Organization.NORMAL,
+            'data_source': self.data_source.id,
+            'origin_id': 'sub-org',
+            'classification': self.organization_class.id,
+            'name': 'sub organization',
+        }
+        form = SubOrganizationForm(form_data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['internal_type'], Organization.NORMAL)
+
+        form_data['internal_type'] = Organization.AFFILIATED
+        form = SubOrganizationForm(form_data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['internal_type'], Organization.NORMAL)
+
+
+class TestAffiliatedOrganizationForm(TestCase):
+
+    def setUp(self):
+        self.data_source = DataSourceFactory()
+        self.organization_class = OrganizationClassFactory()
+
+    def test__init__(self):
+        form = AffiliatedOrganizationForm()
+        self.assertEqual(form.initial['internal_type'], Organization.AFFILIATED)
+
+        form = AffiliatedOrganizationForm(initial={'internal_type': Organization.NORMAL})
+        self.assertEqual(form.initial['internal_type'], Organization.AFFILIATED)
+
+    def test_clean_internal_type(self):
+        form_data = {
+            'internal_type': Organization.NORMAL,
+            'data_source': self.data_source.id,
+            'origin_id': 'sub-org',
+            'classification': self.organization_class.id,
+            'name': 'sub organization',
+        }
+        form = AffiliatedOrganizationForm(form_data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['internal_type'], Organization.AFFILIATED)
+
+        form_data['internal_type'] = Organization.AFFILIATED
+        form = AffiliatedOrganizationForm(form_data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['internal_type'], Organization.AFFILIATED)

@@ -1,9 +1,10 @@
 import swapper
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.translation import ugettext_lazy as _
 from mptt.admin import DraggableMPTTAdmin
 
-from .forms import OrganizationForm
+from .forms import AffiliatedOrganizationForm, OrganizationForm, SubOrganizationForm
 from .models import OrganizationClass, Organization
 from .utils import get_data_source_model
 
@@ -22,22 +23,57 @@ class OrganizationClassAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
 
-class ChildOrganizationInline(admin.TabularInline):
+class SubOrganizationInline(admin.TabularInline):
     model = Organization
+    verbose_name = _('sub organization')
+    verbose_name_plural = _('sub organizations')
     fk_name = 'parent'
-    fields = (
-        'internal_type', 'data_source', 'origin_id',
-        'classification', 'name', 'founding_date',
-    )
+    form = SubOrganizationForm
     extra = 1
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(internal_type=Organization.NORMAL)
+
+
+class AffiliatedOrganizationInline(admin.TabularInline):
+    model = Organization
+    verbose_name = _('affiliated organization')
+    verbose_name_plural = _('affiliated organizations')
+    fk_name = 'parent'
+    form = AffiliatedOrganizationForm
+    extra = 1
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(internal_type=Organization.AFFILIATED)
+
+    def has_add_permission(self, request):
+        if request.user.has_perm('django_orghierarchy.add_affiliated_organization'):
+            return True
+        return super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
+            return True
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.has_perm('django_orghierarchy.delete_affiliated_organization'):
+            return True
+        return super().has_delete_permission(request, obj)
 
 
 @admin.register(Organization)
 class OrganizationAdmin(DraggableMPTTAdmin):
-    readonly_fields = ('id',)
     filter_horizontal = ('admin_users', 'regular_users')
     form = OrganizationForm
-    inlines = [ChildOrganizationInline]
+    inlines = [SubOrganizationInline, AffiliatedOrganizationInline]
+
+    def get_queryset(self, request):
+        if not request.user.is_superuser:
+            return request.user.admin_organizations.all()
+        return super().get_queryset(request)
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:
@@ -59,3 +95,28 @@ class OrganizationAdmin(DraggableMPTTAdmin):
             additional_styles,
             item,
         )
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
+            # allow changing affiliated organization means user can also
+            # changing current organization (open change form)
+            return True
+        return super().has_change_permission(request, obj)
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+
+        if not request.user.has_perm('django_orghierarchy.delete_organization'):
+            del actions['delete_selected']
+        return actions
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and not request.user.has_perm('django_orghierarchy.change_organization'):
+            # has_change_permission will be evaluated to True (i.e. user can
+            # open change form in admin) if user has change permissions on
+            # affiliated organizations, this is to make sure user cannot edit
+            # current organization if he does not have change permission on
+            # organization
+            return self.form.base_fields
+
+        return super().get_readonly_fields(request, obj)

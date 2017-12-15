@@ -79,6 +79,11 @@ class Organization(MPTTModel):
 
     class Meta:
         unique_together = ('data_source', 'origin_id')
+        permissions = (
+            ('add_affiliated_organization', 'Can add affiliated organization'),
+            ('change_affiliated_organization', 'Can change affiliated organization'),
+            ('delete_affiliated_organization', 'Can delete affiliated organization'),
+        )
 
     def __str__(self):
         return self.name

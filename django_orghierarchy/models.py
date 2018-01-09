@@ -1,6 +1,7 @@
 import swapper
 from django.conf import settings
 from django.db import models, transaction
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -32,10 +33,29 @@ class DataSource(AbstractDataSource):
         swappable = swapper.swappable_setting('django_orghierarchy', 'DataSource')
 
 
-class OrganizationClass(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+class DataModel(models.Model):
+    id = models.CharField(max_length=255, primary_key=True, editable=False)
+    data_source = models.ForeignKey(swapper.get_model_name('django_orghierarchy', 'DataSource'), blank=True, null=True)
+    origin_id = models.CharField(max_length=255, blank=True)
+    created_time = models.DateTimeField(default=timezone.now, help_text=_('The time at which the resource was created'))
+    last_modified_time = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))
 
     class Meta:
+        abstract = True
+        unique_together = ('data_source', 'origin_id')
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # the id is only set when creating object, it cannot be changed later
+            self.id = '{0}:{1}'.format(self.data_source_id, self.origin_id)
+        super().save(*args, **kwargs)
+
+
+class OrganizationClass(DataModel):
+    name = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ('data_source', 'origin_id')
         verbose_name = _('Organization class')
         verbose_name_plural = _('Organization classes')
 
@@ -43,7 +63,7 @@ class OrganizationClass(models.Model):
         return self.name
 
 
-class Organization(MPTTModel):
+class Organization(MPTTModel, DataModel):
     NORMAL = 'normal'
     AFFILIATED = 'affiliated'
 
@@ -52,9 +72,6 @@ class Organization(MPTTModel):
         (AFFILIATED, _('Affiliated organization')),
     )
 
-    id = models.CharField(max_length=255, primary_key=True, editable=False)
-    data_source = models.ForeignKey(swapper.get_model_name('django_orghierarchy', 'DataSource'), blank=True, null=True)
-    origin_id = models.CharField(max_length=255, unique=True)
     internal_type = models.CharField(max_length=20, choices=INTERNAL_TYPES, default=NORMAL)
 
     classification = models.ForeignKey(OrganizationClass, on_delete=models.PROTECT, blank=True, null=True,
@@ -67,9 +84,6 @@ class Organization(MPTTModel):
     admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='admin_organizations')
     regular_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
                                            related_name='organization_memberships')
-
-    created_time = models.DateTimeField(auto_now_add=True, help_text=_('The time at which the resource was created'))
-    last_modified_time = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_organizations',
                                    null=True, blank=True, editable=False)
     last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='modified_organizations',
@@ -90,9 +104,6 @@ class Organization(MPTTModel):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        if not self.id:
-            # the id is only set when creating object, it cannot be changed later
-            self.id = '{0}:{1}'.format(self.data_source_id, self.origin_id)
         super().save(*args, **kwargs)
 
         if self.parent:

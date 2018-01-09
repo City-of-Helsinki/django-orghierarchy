@@ -10,6 +10,8 @@ class DataSourceFactory(factory.django.DjangoModelFactory):
 
 
 class OrganizationClassFactory(factory.django.DjangoModelFactory):
+    data_source = factory.SubFactory(DataSourceFactory)
+    origin_id = factory.Faker('text', max_nb_chars=255)
     name = factory.Faker('text', max_nb_chars=255)
 
     class Meta:

@@ -29,7 +29,7 @@ organization_1 = {
     'id': 111,
     'data_source': 'test-source-1',
     'origin_id': 'ABC-123',
-    'classification': 'test-class-1',
+    'classification': 'test-source-1:test-class-1',
     'name': 'Organization-1',
     'founding_date': '2000-01-01',
     'dissolution_date': '2017-01-01',
@@ -41,7 +41,7 @@ organization_2 = {
     'id': 222,
     'data_source': 'test-source-1',
     'origin_id': 'ABC-456',
-    'classification': 'test-class-1',
+    'classification': 'test-source-1:test-class-1',
     'name': 'Organization-2',
     'founding_date': '2000-01-01',
     'dissolution_date': None,
@@ -53,7 +53,7 @@ organization_3 = {
     'id': 333,
     'data_source': 'test-source-2',
     'origin_id': 'XYZ-3',
-    'classification': 'test-class-2',
+    'classification': 'test-source-2:test-class-2',
     'name': 'Organizatoin-3',
     'founding_date': '2016-01-01',
     'dissolution_date': None,
@@ -122,9 +122,9 @@ class TestRestApiImporter(TestCase):
         self.assertDictEqual(importer.field_config, expected_field_config)
 
     def test_get_organization_class(self):
-        data = {'name': 'test-class'}
+        data = {'id': 'test-source:test-class'}
         organization_class = self.importer._get_organization_class(data)
-        self.assertEqual(organization_class.name, 'test-class')
+        self.assertEqual(organization_class.id, 'test-source:test-class')
         self.assertEqual(OrganizationClass.objects.count(), 1)
 
         self.importer._get_organization_class(data)
@@ -206,21 +206,23 @@ class TestRestApiImporter(TestCase):
         self.assertEqual(data_source.id, 'test-data-source')
 
     def test_import_organization_class_with_string(self):
-        organization_class = self.importer._import_organization_class('test-org-class')
+        organization_class = self.importer._import_organization_class('test-source-1:test-org-class')
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
-        self.assertEqual(organization_class.name, 'test-org-class')
+        self.assertEqual(organization_class.id, 'test-source-1:test-org-class')
 
     def test_import_organization_class_with_dict_data(self):
         data = {
             'id': 999,
+            'origin_id': 'test-org-class',
             'name': 'test-org-class',
+            'data_source': 'test-source-1',
         }
         organization_class = self.importer._import_organization_class(data)
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.name, 'test-org-class')
-        self.assertNotEqual(organization_class.id, 999)
+        self.assertEqual(organization_class.id, 'test-source-1:test-org-class')
 
     @patch('requests.get', MagicMock(side_effect=mock_request_get))
     def test_data_iter(self):
@@ -306,7 +308,7 @@ class TestRestApiImporter(TestCase):
         self.assertEqual(value.id, 'test-source-1')
 
         value = self.importer._get_field_value(organization_1, 'classification', {})
-        self.assertEqual(value.name, 'test-class-1')
+        self.assertEqual(value.id, 'test-source-1:test-class-1')
 
         value = self.importer._get_field_value(organization_1, 'parent', {'data_type': 'link'})
         self.assertEqual(value.name, 'Organization-2')

@@ -41,7 +41,8 @@ class RestAPIImporter:
     Config options:
         - next_key: The url to the next page if the source data is paginated.
         - results_key: The object key to the list of organization objects.
-        - fields: The fields of which the values will be imported.
+        - fields: The fields of which the values will be imported. The same fields will be imported
+            in organization classes, if present.
         - update_fields: The fields to update if the organization with same origin_id exists.
         - field_config: Configs for each field. Config options:
             - source_field: The source data object key where the field value comes from.
@@ -147,11 +148,23 @@ class RestAPIImporter:
         The method will first try to get the organization class from cache, and
         then get from database if not cached.
         """
-        name = data['name']
-        if name not in self._organization_classes:
+        identifier = data.get('id')
+        if identifier:
+            # organization class requires data source and origin_id.
+            # try to construct them from the id or die trying:
+            if 'data_source' not in data or 'origin_id' not in data:
+                data['data_source'] = identifier.split(':')[0]
+                data['origin_id'] = identifier.split(':')[1]
+        # provided identifier or data source and origin id required:
+        if not data['data_source'] or not data['origin_id']:
+            raise DataImportError('Organization class missing data source or origin id')
+        data['data_source'] = self.related_import_methods['data_source'](data['data_source'])
+        # extra fields should not crash the import. Only use specified fields.
+        data = {field: value for (field, value) in data.items() if field in self.fields}
+        if identifier not in self._organization_classes:
             organization_class, _ = OrganizationClass.objects.get_or_create(**data)
-            self._organization_classes[name] = organization_class
-        return self._organization_classes[name]
+            self._organization_classes[identifier] = organization_class
+        return self._organization_classes[identifier]
 
     def _get_data_source(self, data):
         """Get data source for the given object data
@@ -232,7 +245,7 @@ class RestAPIImporter:
         if isinstance(data, dict):
             object_data = {k: v for k, v in data.items() if k != 'id'}
         else:
-            object_data = {'name': data}
+            object_data = {'id': data}
 
         return self._get_organization_class(object_data)
 

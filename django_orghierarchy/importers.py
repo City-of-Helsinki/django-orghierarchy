@@ -25,7 +25,9 @@ class DataType(Enum):
 
 
 class RestAPIImporter:
-    """This class allows importing organization data from a REST API endpoint.
+    """This class allows importing organization data from a REST API endpoint. The default
+    configuration supports the 6aika Open Decision API specification:
+    https://github.com/6aika/api-paatos
 
     The importer will also create data sources and organization classes if does not exist.
     If a single value is provided to `data_source` and `classification` fields, then the
@@ -43,7 +45,8 @@ class RestAPIImporter:
         - results_key: The object key to the list of organization objects.
         - fields: The fields of which the values will be imported. The same fields will be imported
             in organization classes, if present.
-        - update_fields: The fields to update if the organization with same origin_id exists.
+        - update_fields: The fields to update if the organization with same origin_id and data
+            source exists.
         - field_config: Configs for each field. Config options:
             - source_field: The source data object key where the field value comes from.
                 Defaults to original field name.
@@ -53,6 +56,7 @@ class RestAPIImporter:
                 from the link; if the data type is 'regex', it will return the value extracted
                 from the given pattern.
         - rename_data_source: Data sources that are renamed during import.
+        - default_data_source: Data source id to use for objects without data source.
 
     Example config:
         {
@@ -73,7 +77,8 @@ class RestAPIImporter:
             'rename_data_source': {
                 'original_name_1': 'new_name_1',
                 'original_name_2': 'new_name_2',
-            }
+            },
+            'default_data_source': 'new_name_1'
         }
     """
 
@@ -93,7 +98,8 @@ class RestAPIImporter:
             'parent': {
                 'data_type': 'link',
             }
-        }
+        },
+        'default_data_source': 'OpenDecisionAPI'
     }
 
     def __init__(self, url, config=None):
@@ -142,6 +148,11 @@ class RestAPIImporter:
         """Data source renaming configs"""
         return self.config.get('rename_data_source') or {}
 
+    @property
+    def default_data_source(self):
+        """Default data source string"""
+        return self.config['default_data_source']
+
     def _get_organization_class(self, data):
         """Get organization class for the given object data
 
@@ -149,15 +160,18 @@ class RestAPIImporter:
         then get from database if not cached.
         """
         identifier = data.get('id')
-        if identifier:
-            # organization class requires data source and origin_id.
-            # try to construct them from the id or die trying:
-            if 'data_source' not in data or 'origin_id' not in data:
-                data['data_source'] = identifier.split(':')[0]
-                data['origin_id'] = identifier.split(':')[1]
-        # provided identifier or data source and origin id required:
-        if not data['data_source'] or not data['origin_id']:
-            raise DataImportError('Organization class missing data source or origin id')
+        # organization class requires data source and origin_id.
+        # try to construct them from the id or die trying:
+        if ('data_source' not in data or 'origin_id' not in data) and\
+                type(identifier) is str and ':' in identifier:
+            data['data_source'] = identifier.split(':')[0]
+            data['origin_id'] = identifier.split(':')[1]
+        # provided id used if origin id missing
+        if 'origin_id' not in data or not data['origin_id']:
+            data['origin_id'] = identifier
+        # default data source used if missing
+        if 'data_source' not in data or not data['data_source']:
+            data['data_source'] = self.default_data_source
         data['data_source'] = self.related_import_methods['data_source'](data['data_source'])
         # extra fields should not crash the import. Only use specified fields.
         data = {field: value for (field, value) in data.items() if field in self.fields}
@@ -202,9 +216,12 @@ class RestAPIImporter:
 
         config = self.field_config.get('origin_id') or {}
         origin_id = self._get_field_value(data, 'origin_id', config)
+        data_source = self._get_field_value(data, 'data_source', config)
+        if not data_source:
+            data_source = self._get_field_value(self.default_data_source, 'data_source', config)
 
         try:
-            organization = Organization.objects.get(origin_id=origin_id)
+            organization = Organization.objects.get(origin_id=origin_id, data_source=data_source)
             logger.info('Organization already exists: {0}'.format(organization.id))
 
             for field in self.update_fields:
@@ -240,10 +257,13 @@ class RestAPIImporter:
         """Import organization class.
 
         If a single value is provided to classification field, it assume it's
-        the name of the organization class.
+        the id of the organization class.
+
+        If a dict is provided, origin_id is used if present, otherwise id.
         """
         if isinstance(data, dict):
             object_data = {k: v for k, v in data.items() if k != 'id'}
+            object_data['id'] = data['origin_id'] if 'origin_id' in data else data['id']
         else:
             object_data = {'id': data}
 

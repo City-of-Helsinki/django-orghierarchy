@@ -181,6 +181,7 @@ class TestRestApiImporter(TestCase):
         organization = OrganizationFactory(
             name='existing-organization',
             origin_id=organization_2['origin_id'],
+            data_source=self.importer._import_data_source(organization_2['data_source']),
         )
         self.importer._import_organization(organization_2)
         organization.refresh_from_db()
@@ -211,6 +212,12 @@ class TestRestApiImporter(TestCase):
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.id, 'test-source-1:test-org-class')
 
+    def test_import_organization_class_with_simple_string(self):
+        organization_class = self.importer._import_organization_class('class-with-no-source')
+        qs = OrganizationClass.objects.all()
+        self.assertQuerysetEqual(qs, [repr(organization_class)])
+        self.assertEqual(organization_class.id, 'RestAPI:class-with-no-source')
+
     def test_import_organization_class_with_dict_data(self):
         data = {
             'id': 999,
@@ -223,6 +230,17 @@ class TestRestApiImporter(TestCase):
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.name, 'test-org-class')
         self.assertEqual(organization_class.id, 'test-source-1:test-org-class')
+
+    def test_import_organization_class_with_simple_dict_data(self):
+        data = {
+            'id': 999,
+            'name': 'test-org-class'
+        }
+        organization_class = self.importer._import_organization_class(data)
+        qs = OrganizationClass.objects.all()
+        self.assertQuerysetEqual(qs, [repr(organization_class)])
+        self.assertEqual(organization_class.name, 'test-org-class')
+        self.assertEqual(organization_class.id, 'RestAPI:999')
 
     @patch('requests.get', MagicMock(side_effect=mock_request_get))
     def test_data_iter(self):

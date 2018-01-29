@@ -100,6 +100,8 @@ class Organization(MPTTModel, DataModel):
         )
 
     def __str__(self):
+        if self.dissolution_date:
+            return self.name + ' (dissolved)'
         return self.name
 
     @transaction.atomic

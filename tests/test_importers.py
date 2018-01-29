@@ -216,7 +216,7 @@ class TestRestApiImporter(TestCase):
         organization_class = self.importer._import_organization_class('class-with-no-source')
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
-        self.assertEqual(organization_class.id, 'RestAPI:class-with-no-source')
+        self.assertEqual(organization_class.id, 'OpenDecisionAPI:class-with-no-source')
 
     def test_import_organization_class_with_dict_data(self):
         data = {
@@ -240,7 +240,7 @@ class TestRestApiImporter(TestCase):
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.name, 'test-org-class')
-        self.assertEqual(organization_class.id, 'RestAPI:999')
+        self.assertEqual(organization_class.id, 'OpenDecisionAPI:999')
 
     @patch('requests.get', MagicMock(side_effect=mock_request_get))
     def test_data_iter(self):

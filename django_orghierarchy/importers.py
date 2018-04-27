@@ -20,6 +20,7 @@ class DataImportError(Exception):
 
 class DataType(Enum):
     VALUE = 'value'
+    STR_LOWER = 'str_lower'
     LINK = 'link'
     REGEX = 'regex'
 
@@ -50,9 +51,10 @@ class RestAPIImporter:
         - field_config: Configs for each field. Config options:
             - source_field: The source data object key where the field value comes from.
                 Defaults to original field name.
-            - data_type: The data type for the field, can be 'value', 'link' or 'regex'.
+            - data_type: The data type for the field, can be 'value', 'str_lower', 'link' or 'regex'.
                 Defaults to 'value'. If the data type is 'value', it will return the value
-                from source data; if the data type is 'link', it will return the data fetched
+                from source data; if the data type is 'str_lower', it will return the value stringified
+                and lowercased; if the data type is 'link', it will return the data fetched
                 from the link; if the data type is 'regex', it will return the value extracted
                 from the given pattern.
         - rename_data_source: Data sources that are renamed during import.
@@ -97,6 +99,9 @@ class RestAPIImporter:
         'field_config': {
             'parent': {
                 'data_type': 'link',
+            },
+            'origin_id': {
+                'data_type': 'str_lower',
             }
         },
         'default_data_source': 'OpenDecisionAPI'
@@ -221,7 +226,8 @@ class RestAPIImporter:
             data_source = self._get_field_value(self.default_data_source, 'data_source', config)
 
         try:
-            organization = Organization.objects.get(origin_id=origin_id, data_source=data_source)
+            # enforce lower case id standard, but recognize upper case ids as equal:
+            organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
             logger.info('Organization already exists: {0}'.format(organization.id))
 
             for field in self.update_fields:
@@ -300,6 +306,7 @@ class RestAPIImporter:
         will be used.
 
         If the data type is DataType.VALUE, the value will be returned;
+        If the data type is DataType.STR_LOWER, the value will be returned stringified to lower case;
         If the data type is DataType.LINK, the data in the link will be returned;
         If the data type is DataType.REGEX, the extracted value for the pattern will be returned.
         """
@@ -323,7 +330,9 @@ class RestAPIImporter:
         else:
             data_type = DataType.VALUE
 
-        if data_type == DataType.LINK:
+        if data_type == DataType.STR_LOWER:
+            value = str(value).lower()
+        elif data_type == DataType.LINK:
             value = self._get_link_data(value)
         elif data_type == DataType.REGEX:
             try:

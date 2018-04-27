@@ -115,6 +115,9 @@ class TestRestApiImporter(TestCase):
             'parent': {
                 'data_type': 'link',
             },
+            'origin_id': {
+                'data_type': 'str_lower',
+            },
             'classification': {
                 'data_type': 'link',
             }
@@ -299,6 +302,13 @@ class TestRestApiImporter(TestCase):
         }
         value = self.importer._get_field_value({'name': 'http://fake.url/'}, 'name', config)
         self.assertEqual(value, 'test-get-return')
+
+    def test_get_field_value_str_lower_data_type(self):
+        config = {
+            'data_type': 'str_lower',
+        }
+        value = self.importer._get_field_value(organization_1, 'origin_id', config)
+        self.assertEqual(value, 'abc-123')
 
     def test_get_field_value_regex_data_type(self):
         config = {

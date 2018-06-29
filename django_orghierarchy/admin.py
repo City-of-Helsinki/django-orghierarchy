@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from mptt.admin import DraggableMPTTAdmin
+from functools import reduce
 
 from .forms import AffiliatedOrganizationForm, OrganizationForm, SubOrganizationForm
 from .models import OrganizationClass, Organization
@@ -72,7 +73,14 @@ class OrganizationAdmin(DraggableMPTTAdmin):
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
-            return request.user.admin_organizations.all()
+            if not request.user.admin_organizations.all():
+                return []
+            # regular admins have rights to all organizations below their level
+            admin_orgs = []
+            for admin_org in request.user.admin_organizations.all():
+                admin_orgs.append(admin_org.get_descendants(include_self=True))
+            # for multiple admin_orgs, we have to combine the querysets and filter distinct
+            return reduce(lambda a, b: a | b, admin_orgs).distinct()
         return super().get_queryset(request)
 
     def save_model(self, request, obj, form, change):

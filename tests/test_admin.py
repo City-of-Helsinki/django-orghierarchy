@@ -112,6 +112,13 @@ class TestOrganizationAdmin(TestCase):
 
     def test_get_queryset(self):
         org = OrganizationFactory()
+        sub_org = OrganizationFactory()
+        another_sub_org = OrganizationFactory()
+        sub_org.parent = self.organization
+        another_sub_org.parent = org
+        sub_org.save()
+        another_sub_org.save()
+
         normal_admin = make_admin(username='normal_admin', is_superuser=False)
 
         oa = OrganizationAdmin(Organization, self.site)
@@ -120,7 +127,7 @@ class TestOrganizationAdmin(TestCase):
         # test against superuser admin
         request.user = self.admin
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization), repr(org)], ordered=False)
+        self.assertQuerysetEqual(qs, [repr(self.organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
 
         # test against non-superuser admin
         request.user = normal_admin
@@ -129,11 +136,11 @@ class TestOrganizationAdmin(TestCase):
 
         self.organization.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization)])
+        self.assertQuerysetEqual(qs, [repr(self.organization), repr(sub_org)])
 
         org.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization), repr(org)], ordered=False)
+        self.assertQuerysetEqual(qs, [repr(self.organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
 
     def test_save_model(self):
         oa = OrganizationAdmin(Organization, self.site)

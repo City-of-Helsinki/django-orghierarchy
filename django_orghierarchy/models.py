@@ -108,7 +108,11 @@ class Organization(MPTTModel, DataModel):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.parent:
+        # before moving again, the instance must be refreshed from db as it has been moved!
+        # https://github.com/django-mptt/django-mptt/issues/257 and
+        # https://github.com/django-mptt/django-mptt/issues/279
+        new_self = self.__class__.objects.get(pk=self.pk)
+        if new_self.parent:
             # move affiliated organization as the first child of parent
             # organization as they need appear before normal child
             # organization when shown in list. We also need to account
@@ -119,7 +123,8 @@ class Organization(MPTTModel, DataModel):
                 self.AFFILIATED: 'first-child',
                 self.NORMAL: 'last-child',
             }
-            self.move_to(self.parent, move_positions[self.internal_type])
+            # we must not call move with original self, its fields were outdated by save
+            new_self.move_to(new_self.parent, move_positions[self.internal_type])
 
     @property
     def sub_organizations(self):

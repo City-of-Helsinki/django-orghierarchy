@@ -159,6 +159,44 @@ class TestOrganizationAdmin(TestCase):
         self.assertEqual(organization.created_by, self.admin)
         self.assertEqual(organization.last_modified_by, another_admin)
 
+    def test_move_model(self):
+        # now, catching this problem requires a four-tier hierarchy and moving next-to-lowest tier
+        # back and forth.
+        oa = OrganizationAdmin(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.admin
+
+        organization_class = OrganizationClassFactory()
+        organization = OrganizationFactory.build(classification=organization_class)
+        organization2 = OrganizationFactory.build(classification=organization_class)
+        organization3 = OrganizationFactory.build(classification=organization_class)
+        organization4 = OrganizationFactory.build(classification=organization_class)
+        organization5 = OrganizationFactory.build(classification=organization_class)
+        organization6 = OrganizationFactory.build(classification=organization_class)
+        organization7 = OrganizationFactory.build(classification=organization_class)
+        organization2.parent = organization
+        organization3.parent = organization
+        organization4.parent = organization2
+        organization5.parent = organization2
+        organization6.parent = organization3
+        organization7.parent = organization4
+        oa.save_model(request, organization, None, None)
+        oa.save_model(request, organization2, None, None)
+        oa.save_model(request, organization3, None, None)
+        oa.save_model(request, organization4, None, None)
+        oa.save_model(request, organization5, None, None)
+        oa.save_model(request, organization6, None, None)
+        oa.save_model(request, organization7, None, None)
+        self.assertEqual(organization4.parent, organization2)
+
+        organization4.parent = organization3
+        oa.save_model(request, organization4, None, None)
+        self.assertEqual(organization4.parent, organization3)
+
+        organization4.parent = organization2
+        oa.save_model(request, organization4, None, None)
+        self.assertEqual(organization4.parent, organization2)
+
     def test_indented_title(self):
         oa = OrganizationAdmin(Organization, self.site)
         request = self.factory.get('/fake-url/')

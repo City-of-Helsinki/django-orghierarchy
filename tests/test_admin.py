@@ -109,6 +109,7 @@ class TestOrganizationAdmin(TestCase):
         self.factory = RequestFactory()
 
         self.organization = OrganizationFactory()
+        self.affiliated_organization = OrganizationFactory(internal_type=Organization.AFFILIATED, parent=self.organization)
 
     def test_get_queryset(self):
         org = OrganizationFactory()
@@ -127,7 +128,7 @@ class TestOrganizationAdmin(TestCase):
         # test against superuser admin
         request.user = self.admin
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
+        self.assertQuerysetEqual(qs, [repr(self.organization), repr(self.affiliated_organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
 
         # test against non-superuser admin
         request.user = normal_admin
@@ -136,11 +137,11 @@ class TestOrganizationAdmin(TestCase):
 
         self.organization.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization), repr(sub_org)])
+        self.assertQuerysetEqual(qs, [repr(self.organization), repr(self.affiliated_organization), repr(sub_org)])
 
         org.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
+        self.assertQuerysetEqual(qs, [repr(self.organization), repr(self.affiliated_organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
 
     def test_save_model(self):
         oa = OrganizationAdmin(Organization, self.site)
@@ -203,9 +204,7 @@ class TestOrganizationAdmin(TestCase):
         request.user = self.admin
 
         self.assertNotIn('color: red;', oa.indented_title(self.organization))
-
-        affiliated_org = OrganizationFactory(internal_type=Organization.AFFILIATED, parent=self.organization)
-        self.assertIn('color: red;', oa.indented_title(affiliated_org))
+        self.assertIn('color: red;', oa.indented_title(self.affiliated_organization))
 
     def test_has_change_permission(self):
         normal_admin = make_admin(username='normal_admin', is_superuser=False)
@@ -250,6 +249,7 @@ class TestOrganizationAdmin(TestCase):
 
         form_base_fields = OrganizationForm.base_fields
         oa_readonly_fields = OrganizationAdmin.readonly_fields
+        oa_normal_readonly_fields = OrganizationAdmin.normal_readonly_fields
 
         fields = oa.get_readonly_fields(request)
         self.assertEqual(fields, oa_readonly_fields)
@@ -265,4 +265,7 @@ class TestOrganizationAdmin(TestCase):
         self.assertEqual(fields, oa_readonly_fields)
 
         fields = oa.get_readonly_fields(request, self.organization)
+        self.assertEqual(fields, oa_normal_readonly_fields)
+
+        fields = oa.get_readonly_fields(request, self.affiliated_organization)
         self.assertEqual(fields, oa_readonly_fields)

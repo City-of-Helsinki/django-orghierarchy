@@ -32,6 +32,13 @@ class SubOrganizationInline(admin.TabularInline):
     form = SubOrganizationForm
     extra = 1
 
+    # these fields may not be changed in normal (imported) organizations
+    readonly_fields = (
+        'data_source', 'origin_id', 'classification',
+        'name', 'founding_date', 'dissolution_date',
+        'internal_type', 'parent',
+       )
+
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.filter(internal_type=Organization.NORMAL)
@@ -70,6 +77,13 @@ class OrganizationAdmin(DraggableMPTTAdmin):
     filter_horizontal = ('admin_users', 'regular_users')
     form = OrganizationForm
     inlines = [SubOrganizationInline, AffiliatedOrganizationInline]
+
+    # these fields may not be changed in normal (imported) organizations
+    normal_readonly_fields = (
+        'data_source', 'origin_id', 'classification',
+        'name', 'founding_date', 'dissolution_date',
+        'internal_type', 'parent',
+       )
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -126,5 +140,8 @@ class OrganizationAdmin(DraggableMPTTAdmin):
             # current organization if he does not have change permission on
             # organization
             return self.form.base_fields
-
+        if obj and obj.internal_type == Organization.NORMAL:
+            # Non-affiliated normal organizations may not be changed in the hierarchy
+            return self.normal_readonly_fields
+        # affiliated organizations have no such restrictions
         return super().get_readonly_fields(request, obj)

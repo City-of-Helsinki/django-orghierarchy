@@ -14,6 +14,7 @@ class AbstractDataSource(models.Model):
     """
     id = models.CharField(max_length=100, primary_key=True)
     name = models.CharField(max_length=255)
+    user_editable = models.BooleanField(default=False, verbose_name=_('Objects may be edited by users'))
 
     class Meta:
         abstract = True
@@ -97,6 +98,7 @@ class Organization(MPTTModel, DataModel):
             ('add_affiliated_organization', 'Can add affiliated organization'),
             ('change_affiliated_organization', 'Can change affiliated organization'),
             ('delete_affiliated_organization', 'Can delete affiliated organization'),
+            ('replace_organization', 'Can replace an organization with a new one'),
         )
 
     def __str__(self):

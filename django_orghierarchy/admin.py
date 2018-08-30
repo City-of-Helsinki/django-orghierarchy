@@ -24,37 +24,70 @@ class OrganizationClassAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
 
-class SubOrganizationInline(admin.TabularInline):
-    model = Organization
-    verbose_name = _('sub organization')
-    verbose_name_plural = _('sub organizations')
-    fk_name = 'parent'
-    form = SubOrganizationForm
-    extra = 1
+class ProtectedOrganizationMixin(object):
+    form = None
+    organization_type = None
 
-    # these fields may not be changed in normal (imported) organizations
-    readonly_fields = (
+    # these fields may not be changed at all in protected organizations
+    protected_readonly_fields = (
         'data_source', 'origin_id', 'classification',
         'name', 'founding_date', 'dissolution_date',
         'internal_type', 'parent',
        )
 
+    def get_readonly_fields(self, request, obj=None):
+        has_write_access = False
+        # queryset is already filtered, but write permissions have to be checked based on organization_type
+        if self.organization_type == Organization.AFFILIATED or (obj and obj.internal_type == Organization.AFFILIATED):
+            # full rights also cover affiliated organizations
+            has_write_access = request.user.has_perm('django_orghierarchy.change_organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization')
+        else:
+            has_write_access = request.user.has_perm('django_orghierarchy.change_organization')
+        if obj and not has_write_access:
+            # has_change_permission has been evaluated to True (i.e. user can
+            # open change form in admin) if user has change permissions on
+            # affiliated organizations, this i  s to make sure user cannot edit
+            # current organization if he does not have change permission on
+            # organization
+            return self.form.base_fields
+        if obj and not obj.data_source.user_editable:
+            # Organization data from protected data sources may not be edited
+            if not request.user.has_perm('django_orghierarchy.replace_organization'):
+                # Replacing an organization in the hierarchy requires extra privileges
+                return self.protected_readonly_fields + ('replaced_by',)
+            # Protected organizations allow only user fields to be changed
+            return self.protected_readonly_fields
+        # Editable organizations have no such restrictions, but replacement still requires extra privileges
+        if not request.user.has_perm('django_orghierarchy.replace_organization'):
+            return super().get_readonly_fields(request, obj) + ('replaced_by', )
+        return super().get_readonly_fields(request, obj)
+
     def get_queryset(self, request):
+        # limit the queries if the admin is meant for a specific organization type
         queryset = super().get_queryset(request)
-        return queryset.filter(internal_type=Organization.NORMAL)
+        if self.organization_type:
+            return queryset.filter(internal_type=self.organization_type)
+        return queryset
 
 
-class AffiliatedOrganizationInline(admin.TabularInline):
+class SubOrganizationInline(ProtectedOrganizationMixin, admin.TabularInline):
+    model = Organization
+    verbose_name = _('sub organization')
+    verbose_name_plural = _('sub organizations')
+    fk_name = 'parent'
+    form = SubOrganizationForm
+    organization_type = Organization.NORMAL
+    extra = 1
+
+
+class AffiliatedOrganizationInline(ProtectedOrganizationMixin, admin.TabularInline):
     model = Organization
     verbose_name = _('affiliated organization')
     verbose_name_plural = _('affiliated organizations')
     fk_name = 'parent'
     form = AffiliatedOrganizationForm
+    organization_type = Organization.AFFILIATED
     extra = 1
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.filter(internal_type=Organization.AFFILIATED)
 
     def has_add_permission(self, request):
         if request.user.has_perm('django_orghierarchy.add_affiliated_organization'):
@@ -73,17 +106,10 @@ class AffiliatedOrganizationInline(admin.TabularInline):
 
 
 @admin.register(Organization)
-class OrganizationAdmin(DraggableMPTTAdmin):
+class OrganizationAdmin(ProtectedOrganizationMixin, DraggableMPTTAdmin):
     filter_horizontal = ('admin_users', 'regular_users')
     form = OrganizationForm
     inlines = [SubOrganizationInline, AffiliatedOrganizationInline]
-
-    # these fields may not be changed in normal (imported) organizations
-    normal_readonly_fields = (
-        'data_source', 'origin_id', 'classification',
-        'name', 'founding_date', 'dissolution_date',
-        'internal_type', 'parent',
-       )
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -131,17 +157,3 @@ class OrganizationAdmin(DraggableMPTTAdmin):
         if not request.user.has_perm('django_orghierarchy.delete_organization'):
             del actions['delete_selected']
         return actions
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj and not request.user.has_perm('django_orghierarchy.change_organization'):
-            # has_change_permission will be evaluated to True (i.e. user can
-            # open change form in admin) if user has change permissions on
-            # affiliated organizations, this is to make sure user cannot edit
-            # current organization if he does not have change permission on
-            # organization
-            return self.form.base_fields
-        if obj and obj.internal_type == Organization.NORMAL:
-            # Non-affiliated normal organizations may not be changed in the hierarchy
-            return self.normal_readonly_fields
-        # affiliated organizations have no such restrictions
-        return super().get_readonly_fields(request, obj)

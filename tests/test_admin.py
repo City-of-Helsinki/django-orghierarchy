@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase, RequestFactory
 
 from django_orghierarchy.admin import AffiliatedOrganizationInline, OrganizationAdmin, SubOrganizationInline
 from django_orghierarchy.forms import OrganizationForm
 from django_orghierarchy.models import DataSource, Organization
-from .factories import OrganizationClassFactory, OrganizationFactory
+from .factories import OrganizationClassFactory, OrganizationFactory, DataSourceFactory
 from .utils import clear_user_perm_cache, make_admin
 
 
@@ -26,6 +27,7 @@ class TestSubOrganizationInline(TestCase):
 
         self.normal_org = OrganizationFactory(internal_type=Organization.NORMAL)
         self.affiliated_org = OrganizationFactory(internal_type=Organization.AFFILIATED)
+        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
 
     def test_get_queryset(self):
         sub_org_inline = SubOrganizationInline(Organization, self.site)
@@ -33,7 +35,47 @@ class TestSubOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = sub_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.normal_org)])
+        self.assertQuerysetEqual(qs, [repr(self.normal_org), repr(self.editable_org)])
+
+    def test_get_readonly_fields(self):
+        normal_admin = make_admin(username='normal_admin', is_superuser=False)
+
+        sub_org_inline = SubOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = normal_admin
+
+        form_base_fields = SubOrganizationInline.form.base_fields
+        soi_readonly_fields = SubOrganizationInline.readonly_fields
+        soi_protected_readonly_fields = SubOrganizationInline.protected_readonly_fields
+
+        fields = sub_org_inline.get_readonly_fields(request)
+        self.assertEqual(fields, soi_readonly_fields + ('replaced_by',))
+
+        fields = sub_org_inline.get_readonly_fields(request, self.normal_org)
+        self.assertEqual(fields, form_base_fields)
+
+        clear_user_perm_cache(normal_admin)
+        perm = Permission.objects.get(codename='change_organization')
+        normal_admin.user_permissions.add(perm)
+
+        fields = sub_org_inline.get_readonly_fields(request)
+        self.assertEqual(fields, soi_readonly_fields + ('replaced_by',))
+
+        fields = sub_org_inline.get_readonly_fields(request, self.normal_org)
+        self.assertEqual(fields, soi_protected_readonly_fields + ('replaced_by',))
+
+        fields = sub_org_inline.get_readonly_fields(request, self.editable_org)
+        self.assertEqual(fields, soi_readonly_fields + ('replaced_by',))
+
+        clear_user_perm_cache(normal_admin)
+        perm = Permission.objects.get(codename='replace_organization')
+        normal_admin.user_permissions.add(perm)
+
+        fields = sub_org_inline.get_readonly_fields(request, self.normal_org)
+        self.assertEqual(fields, soi_protected_readonly_fields)
+
+        fields = sub_org_inline.get_readonly_fields(request, self.editable_org)
+        self.assertEqual(fields, soi_readonly_fields)
 
 
 class TestAffiliatedOrganizationInline(TestCase):
@@ -46,6 +88,8 @@ class TestAffiliatedOrganizationInline(TestCase):
 
         self.normal_org = OrganizationFactory(internal_type=Organization.NORMAL)
         self.affiliated_org = OrganizationFactory(internal_type=Organization.AFFILIATED)
+        self.editable_org = OrganizationFactory(internal_type=Organization.AFFILIATED,
+                                                data_source=(DataSourceFactory(user_editable=True)))
 
     def test_get_queryset(self):
         aff_org_inline = AffiliatedOrganizationInline(Organization, self.site)
@@ -53,7 +97,7 @@ class TestAffiliatedOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = aff_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.affiliated_org)])
+        self.assertQuerysetEqual(qs, [repr(self.affiliated_org), repr(self.editable_org)])
 
     def test_has_add_permission(self):
         aff_org_inline = AffiliatedOrganizationInline(Organization, self.site)
@@ -100,6 +144,44 @@ class TestAffiliatedOrganizationInline(TestCase):
         has_perm = aff_org_inline.has_delete_permission(request)
         self.assertTrue(has_perm)
 
+    def test_get_readonly_fields(self):
+        aff_org_inline = AffiliatedOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.normal_admin
+
+        form_base_fields = AffiliatedOrganizationInline.form.base_fields
+        aoi_readonly_fields = AffiliatedOrganizationInline.readonly_fields
+        aoi_protected_readonly_fields = AffiliatedOrganizationInline.protected_readonly_fields
+
+        fields = aff_org_inline.get_readonly_fields(request)
+        self.assertEqual(fields, aoi_readonly_fields + ('replaced_by',))
+
+        fields = aff_org_inline.get_readonly_fields(request, self.affiliated_org)
+        self.assertEqual(fields, form_base_fields)
+
+        clear_user_perm_cache(self.normal_admin)
+        perm = Permission.objects.get(codename='change_affiliated_organization')
+        self.normal_admin.user_permissions.add(perm)
+
+        fields = aff_org_inline.get_readonly_fields(request)
+        self.assertEqual(fields, aoi_readonly_fields + ('replaced_by',))
+
+        fields = aff_org_inline.get_readonly_fields(request, self.affiliated_org)
+        self.assertEqual(fields, aoi_protected_readonly_fields + ('replaced_by',))
+
+        fields = aff_org_inline.get_readonly_fields(request, self.editable_org)
+        self.assertEqual(fields, aoi_readonly_fields + ('replaced_by',))
+
+        clear_user_perm_cache(self.normal_admin)
+        perm = Permission.objects.get(codename='replace_organization')
+        self.normal_admin.user_permissions.add(perm)
+
+        fields = aff_org_inline.get_readonly_fields(request, self.affiliated_org)
+        self.assertEqual(fields, aoi_protected_readonly_fields)
+
+        fields = aff_org_inline.get_readonly_fields(request, self.editable_org)
+        self.assertEqual(fields, aoi_readonly_fields)
+
 
 class TestOrganizationAdmin(TestCase):
 
@@ -110,6 +192,7 @@ class TestOrganizationAdmin(TestCase):
 
         self.organization = OrganizationFactory()
         self.affiliated_organization = OrganizationFactory(internal_type=Organization.AFFILIATED, parent=self.organization)
+        self.editable_organization = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
 
     def test_get_queryset(self):
         org = OrganizationFactory()
@@ -128,7 +211,7 @@ class TestOrganizationAdmin(TestCase):
         # test against superuser admin
         request.user = self.admin
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization), repr(self.affiliated_organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
+        self.assertQuerysetEqual(qs, [repr(self.organization), repr(self.affiliated_organization), repr(self.editable_organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
 
         # test against non-superuser admin
         request.user = normal_admin
@@ -247,12 +330,12 @@ class TestOrganizationAdmin(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = normal_admin
 
-        form_base_fields = OrganizationForm.base_fields
+        form_base_fields = OrganizationAdmin.form.base_fields
         oa_readonly_fields = OrganizationAdmin.readonly_fields
-        oa_normal_readonly_fields = OrganizationAdmin.normal_readonly_fields
+        oa_protected_readonly_fields = OrganizationAdmin.protected_readonly_fields
 
         fields = oa.get_readonly_fields(request)
-        self.assertEqual(fields, oa_readonly_fields)
+        self.assertEqual(fields, oa_readonly_fields + ('replaced_by',))
 
         fields = oa.get_readonly_fields(request, self.organization)
         self.assertEqual(fields, form_base_fields)
@@ -262,10 +345,26 @@ class TestOrganizationAdmin(TestCase):
         normal_admin.user_permissions.add(perm)
 
         fields = oa.get_readonly_fields(request)
-        self.assertEqual(fields, oa_readonly_fields)
+        self.assertEqual(fields, oa_readonly_fields + ('replaced_by',))
 
         fields = oa.get_readonly_fields(request, self.organization)
-        self.assertEqual(fields, oa_normal_readonly_fields)
+        self.assertEqual(fields, oa_protected_readonly_fields + ('replaced_by',))
 
         fields = oa.get_readonly_fields(request, self.affiliated_organization)
+        self.assertEqual(fields, oa_protected_readonly_fields + ('replaced_by',))
+
+        fields = oa.get_readonly_fields(request, self.editable_organization)
+        self.assertEqual(fields, oa_readonly_fields + ('replaced_by',))
+
+        clear_user_perm_cache(normal_admin)
+        perm = Permission.objects.get(codename='replace_organization')
+        normal_admin.user_permissions.add(perm)
+
+        fields = oa.get_readonly_fields(request, self.organization)
+        self.assertEqual(fields, oa_protected_readonly_fields)
+
+        fields = oa.get_readonly_fields(request, self.affiliated_organization)
+        self.assertEqual(fields, oa_protected_readonly_fields)
+
+        fields = oa.get_readonly_fields(request, self.editable_organization)
         self.assertEqual(fields, oa_readonly_fields)

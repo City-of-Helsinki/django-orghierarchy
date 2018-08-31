@@ -16,7 +16,7 @@ data_source_model = swapper.get_model_name('django_orghierarchy', 'DataSource')
 if data_source_model == 'django_orghierarchy.DataSource':
     @admin.register(get_data_source_model())
     class DataSourceAdmin(admin.ModelAdmin):
-        list_display = ('id', 'name')
+        list_display = ('id', 'name', 'user_editable')
 
 
 @admin.register(OrganizationClass)
@@ -24,9 +24,93 @@ class OrganizationClassAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
 
-class ProtectedOrganizationMixin(object):
-    form = None
-    organization_type = None
+class SubOrganizationInline(admin.TabularInline):
+    model = Organization
+    verbose_name = _('sub organization')
+    verbose_name_plural = _('sub organizations')
+    fk_name = 'parent'
+    form = SubOrganizationForm
+    organization_type = Organization.NORMAL
+    extra = 1
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        print(queryset)
+        return queryset.filter(internal_type=self.organization_type, data_source__user_editable=True)
+
+
+class ProtectedSubOrganizationInline(admin.TabularInline):
+    model = Organization
+    verbose_name = _('non-editable sub organization')
+    verbose_name_plural = _('non-editable sub organizations')
+    fk_name = 'parent'
+    form = SubOrganizationForm
+    organization_type = Organization.NORMAL
+    extra = 0
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.form.base_fields
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        print(queryset)
+        return queryset.filter(internal_type=self.organization_type, data_source__user_editable=False)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        # has_change_permission must be True to allow listing, even in read only
+        if request.user.has_perm('django_orghierarchy.change__organization'):
+            return True
+        return super().has_change_permission(request, obj)
+
+
+class AffiliatedOrganizationInline(SubOrganizationInline):
+    verbose_name = _('affiliated organization')
+    verbose_name_plural = _('affiliated organizations')
+    form = AffiliatedOrganizationForm
+    organization_type = Organization.AFFILIATED
+
+    def has_add_permission(self, request):
+        if request.user.has_perm('django_orghierarchy.add__organization') or request.user.has_perm('django_orghierarchy.add_affiliated_organization'):
+            return True
+        return super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.has_perm('django_orghierarchy.change__organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
+            return True
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        # has_change_permission must be True to allow listing, even in read only
+        if request.user.has_perm('django_orghierarchy.delete__organization') or request.user.has_perm('django_orghierarchy.delete_affiliated_organization'):
+            return True
+        return super().has_delete_permission(request, obj)
+
+
+class ProtectedAffiliatedOrganizationInline(ProtectedSubOrganizationInline):
+    verbose_name = _('non-editable affiliated organization')
+    verbose_name_plural = _('non-editable affiliated organizations')
+    form = AffiliatedOrganizationForm
+    organization_type = Organization.AFFILIATED
+    extra = 0
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.has_perm('django_orghierarchy.change__organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
+            return True
+        return super().has_change_permission(request, obj)
+
+
+@admin.register(Organization)
+class OrganizationAdmin(DraggableMPTTAdmin):
+    filter_horizontal = ('admin_users', 'regular_users')
+    form = OrganizationForm
+    inlines = [ProtectedSubOrganizationInline, SubOrganizationInline,
+               ProtectedAffiliatedOrganizationInline, AffiliatedOrganizationInline]
 
     # these fields may not be changed at all in protected organizations
     protected_readonly_fields = (
@@ -35,10 +119,22 @@ class ProtectedOrganizationMixin(object):
         'internal_type', 'parent',
        )
 
+    def get_queryset(self, request):
+        if not request.user.is_superuser:
+            if not request.user.admin_organizations.all():
+                return []
+            # regular admins have rights to all organizations below their level
+            admin_orgs = []
+            for admin_org in request.user.admin_organizations.all():
+                admin_orgs.append(admin_org.get_descendants(include_self=True))
+            # for multiple admin_orgs, we have to combine the querysets and filter distinct
+            return reduce(lambda a, b: a | b, admin_orgs).distinct()
+        return super().get_queryset(request)
+
     def get_readonly_fields(self, request, obj=None):
         has_write_access = False
         # queryset is already filtered, but write permissions have to be checked based on organization_type
-        if self.organization_type == Organization.AFFILIATED or (obj and obj.internal_type == Organization.AFFILIATED):
+        if obj and obj.internal_type == Organization.AFFILIATED:
             # full rights also cover affiliated organizations
             has_write_access = request.user.has_perm('django_orghierarchy.change_organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization')
         else:
@@ -61,67 +157,6 @@ class ProtectedOrganizationMixin(object):
         if not request.user.has_perm('django_orghierarchy.replace_organization'):
             return super().get_readonly_fields(request, obj) + ('replaced_by', )
         return super().get_readonly_fields(request, obj)
-
-    def get_queryset(self, request):
-        # limit the queries if the admin is meant for a specific organization type
-        queryset = super().get_queryset(request)
-        if self.organization_type:
-            return queryset.filter(internal_type=self.organization_type)
-        return queryset
-
-
-class SubOrganizationInline(ProtectedOrganizationMixin, admin.TabularInline):
-    model = Organization
-    verbose_name = _('sub organization')
-    verbose_name_plural = _('sub organizations')
-    fk_name = 'parent'
-    form = SubOrganizationForm
-    organization_type = Organization.NORMAL
-    extra = 1
-
-
-class AffiliatedOrganizationInline(ProtectedOrganizationMixin, admin.TabularInline):
-    model = Organization
-    verbose_name = _('affiliated organization')
-    verbose_name_plural = _('affiliated organizations')
-    fk_name = 'parent'
-    form = AffiliatedOrganizationForm
-    organization_type = Organization.AFFILIATED
-    extra = 1
-
-    def has_add_permission(self, request):
-        if request.user.has_perm('django_orghierarchy.add_affiliated_organization'):
-            return True
-        return super().has_add_permission(request)
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
-            return True
-        return super().has_change_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.has_perm('django_orghierarchy.delete_affiliated_organization'):
-            return True
-        return super().has_delete_permission(request, obj)
-
-
-@admin.register(Organization)
-class OrganizationAdmin(ProtectedOrganizationMixin, DraggableMPTTAdmin):
-    filter_horizontal = ('admin_users', 'regular_users')
-    form = OrganizationForm
-    inlines = [SubOrganizationInline, AffiliatedOrganizationInline]
-
-    def get_queryset(self, request):
-        if not request.user.is_superuser:
-            if not request.user.admin_organizations.all():
-                return []
-            # regular admins have rights to all organizations below their level
-            admin_orgs = []
-            for admin_org in request.user.admin_organizations.all():
-                admin_orgs.append(admin_org.get_descendants(include_self=True))
-            # for multiple admin_orgs, we have to combine the querysets and filter distinct
-            return reduce(lambda a, b: a | b, admin_orgs).distinct()
-        return super().get_queryset(request)
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:

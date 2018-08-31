@@ -43,6 +43,18 @@ class OrganizationForm(forms.ModelForm):
 
         return cleaned_data
 
+    def clean_data_source(self):
+        if self.initial.get('data_source', None):
+            # data source of an existing object may not be changed
+            return self.initial['data_source']
+        return self.cleaned_data['data_source']
+
+    def clean_id(self):
+        if self.initial.get('id', None):
+            # id of an existing object may not be changed
+            return self.initial['id']
+        return self.cleaned_data['id']
+
 
 class SubOrganizationForm(forms.ModelForm):
     default_internal_type = Organization.NORMAL
@@ -65,6 +77,19 @@ class SubOrganizationForm(forms.ModelForm):
 
     def clean_internal_type(self):
         return self.initial['internal_type']  # do not allow changing internal_type
+
+    def clean_data_source(self):
+        if self.initial.get('data_source', None):
+            # data source of an existing object may not be changed
+            return self.initial['data_source']
+        return self.cleaned_data['data_source']
+
+    def clean_id(self):
+        if self.initial.get('id', None):
+            print(self.initial['id'])
+            # id of an existing object may not be changed
+            return self.initial['id']
+        return self.cleaned_data['id']
 
 
 class AffiliatedOrganizationForm(SubOrganizationForm):

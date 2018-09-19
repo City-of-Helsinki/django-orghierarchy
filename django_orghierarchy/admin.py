@@ -46,6 +46,8 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
     fk_name = 'parent'
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
+    # these have to be specified separately to prevent seeing redundant internal_type field
+    fields = ('data_source', 'origin_id', 'classification', 'name', 'founding_date',)
     extra = 0
 
     def get_readonly_fields(self, request, obj=None):

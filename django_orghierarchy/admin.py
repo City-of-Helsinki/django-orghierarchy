@@ -35,8 +35,12 @@ class SubOrganizationInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        print(queryset)
         return queryset.filter(internal_type=self.organization_type, data_source__user_editable=True)
+
+    def get_readonly_fields(self, request, obj=None):
+        if not obj:
+            return ()
+        return ('id', 'internal_type', 'data_source')
 
 
 class ProtectedSubOrganizationInline(admin.TabularInline):
@@ -55,7 +59,6 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        print(queryset)
         return queryset.filter(internal_type=self.organization_type, data_source__user_editable=False)
 
     def has_add_permission(self, request):
@@ -114,12 +117,11 @@ class OrganizationAdmin(DraggableMPTTAdmin):
     inlines = [ProtectedSubOrganizationInline, SubOrganizationInline,
                ProtectedAffiliatedOrganizationInline, AffiliatedOrganizationInline]
 
+    # these fields may not be changed at all in existing organizations
+    existing_readonly_fields = ('id', 'data_source', 'internal_type')
     # these fields may not be changed at all in protected organizations
-    protected_readonly_fields = (
-        'data_source', 'origin_id', 'classification',
-        'name', 'founding_date', 'dissolution_date',
-        'internal_type', 'parent',
-       )
+    protected_readonly_fields = existing_readonly_fields + ('origin_id', 'classification', 'name', 'founding_date',
+                                                            'dissolution_date', 'parent',)
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -156,11 +158,15 @@ class OrganizationAdmin(DraggableMPTTAdmin):
             # Protected organizations allow only user fields to be changed
             return self.protected_readonly_fields
         # Editable organizations have no such restrictions, but replacement still requires extra privileges
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj:
+            readonly_fields += self.existing_readonly_fields
         if not request.user.has_perm('django_orghierarchy.replace_organization'):
-            return super().get_readonly_fields(request, obj) + ('replaced_by', )
-        return super().get_readonly_fields(request, obj)
+            return readonly_fields + ('replaced_by', )
+        return readonly_fields
 
     def save_model(self, request, obj, form, change):
+        # TODO: only allow creating objects for editable data sources?! or only system data source?
         if not obj.pk:
             obj.created_by = request.user
         obj.last_modified_by = request.user

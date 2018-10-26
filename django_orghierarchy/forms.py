@@ -3,9 +3,11 @@ from django.forms import widgets
 from django.utils.translation import ugettext as _
 
 from .models import Organization
+from .utils import get_data_source_model
 
 
 class OrganizationForm(forms.ModelForm):
+    data_source = forms.ModelChoiceField(queryset=get_data_source_model().objects.filter(user_editable=True))
 
     class Meta:
         model = Organization
@@ -46,6 +48,7 @@ class OrganizationForm(forms.ModelForm):
 
 class SubOrganizationForm(forms.ModelForm):
     default_internal_type = Organization.NORMAL
+    data_source = forms.ModelChoiceField(queryset=get_data_source_model().objects.filter(user_editable=True))
 
     class Meta:
         model = Organization

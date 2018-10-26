@@ -9,6 +9,7 @@ class TestOrganizationForm(TestCase):
 
     def setUp(self):
         self.organization = OrganizationFactory()
+        self.data_source = DataSourceFactory(user_editable=True)
 
     def test_init_without_instance(self):
         form = OrganizationForm()
@@ -32,7 +33,7 @@ class TestOrganizationForm(TestCase):
 
     def test_clean(self):
         form_data = {
-            'data_source': self.organization.data_source_id,
+            'data_source': self.data_source.id,
             'origin_id': 'abc',
             'classification': self.organization.classification_id,
             'name': 'test org',
@@ -50,7 +51,7 @@ class TestOrganizationForm(TestCase):
 class TestSubOrganizationForm(TestCase):
 
     def setUp(self):
-        self.data_source = DataSourceFactory()
+        self.data_source = DataSourceFactory(user_editable=True)
         self.organization_class = OrganizationClassFactory()
 
     def test__init__(self):
@@ -81,7 +82,7 @@ class TestSubOrganizationForm(TestCase):
 class TestAffiliatedOrganizationForm(TestCase):
 
     def setUp(self):
-        self.data_source = DataSourceFactory()
+        self.data_source = DataSourceFactory(user_editable=True)
         self.organization_class = OrganizationClassFactory()
 
     def test__init__(self):

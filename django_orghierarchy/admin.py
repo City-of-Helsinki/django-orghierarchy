@@ -40,7 +40,7 @@ class SubOrganizationInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         if not obj:
             return ()
-        return ('id', 'internal_type', 'data_source')
+        return ('id', 'internal_type', 'data_source', 'origin_id')
 
 
 class ProtectedSubOrganizationInline(admin.TabularInline):
@@ -118,7 +118,7 @@ class OrganizationAdmin(DraggableMPTTAdmin):
                ProtectedAffiliatedOrganizationInline, AffiliatedOrganizationInline]
 
     # these fields may not be changed at all in existing organizations
-    existing_readonly_fields = ('id', 'data_source', 'internal_type')
+    existing_readonly_fields = ('id', 'data_source', 'origin_id', 'internal_type')
     # these fields may not be changed at all in protected organizations
     protected_readonly_fields = existing_readonly_fields + ('origin_id', 'classification', 'name', 'founding_date',
                                                             'dissolution_date', 'parent',)

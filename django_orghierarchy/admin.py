@@ -31,16 +31,38 @@ class SubOrganizationInline(admin.TabularInline):
     fk_name = 'parent'
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
-    extra = 1
+    extra = 0
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.filter(internal_type=self.organization_type, data_source__user_editable=True)
 
     def get_readonly_fields(self, request, obj=None):
-        if not obj:
-            return ()
         return ('id', 'internal_type', 'data_source', 'origin_id')
+
+
+class AddSubOrganizationInline(admin.TabularInline):
+    model = Organization
+    verbose_name = _('add sub organization')
+    verbose_name_plural = _('add sub organizations')
+    fk_name = 'parent'
+    form = SubOrganizationForm
+    organization_type = Organization.NORMAL
+    extra = 1
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).none()
+
+    def has_change_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_readonly_fields(self, request, obj=None):
+        # we have to have this separate since obj is the parent org, not the new empty one
+        # so new suborganizations to be added allow all fields to be defined
+        return ('internal_type',)
 
 
 class ProtectedSubOrganizationInline(admin.TabularInline):
@@ -95,6 +117,13 @@ class AffiliatedOrganizationInline(SubOrganizationInline):
         if request.user.has_perm('django_orghierarchy.delete__organization') or request.user.has_perm('django_orghierarchy.delete_affiliated_organization'):
             return True
         return super().has_delete_permission(request, obj)
+
+
+class AddAffiliatedOrganizationInline(AddSubOrganizationInline):
+    verbose_name = _('add affiliated organization')
+    verbose_name_plural = _('add affiliated organizations')
+    form = AffiliatedOrganizationForm
+    organization_type = Organization.AFFILIATED
 
 
 class ProtectedAffiliatedOrganizationInline(ProtectedSubOrganizationInline):

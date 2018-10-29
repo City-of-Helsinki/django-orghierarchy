@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase, RequestFactory
 
-from django_orghierarchy.admin import OrganizationAdmin, SubOrganizationInline, ProtectedSubOrganizationInline,\
-    AffiliatedOrganizationInline, ProtectedAffiliatedOrganizationInline
+from django_orghierarchy.admin import OrganizationAdmin, SubOrganizationInline, AddSubOrganizationInline, ProtectedSubOrganizationInline,\
+    AffiliatedOrganizationInline, AddAffiliatedOrganizationInline, ProtectedAffiliatedOrganizationInline
 from django_orghierarchy.forms import OrganizationForm
 from django_orghierarchy.models import DataSource, Organization
 from .factories import OrganizationClassFactory, OrganizationFactory, DataSourceFactory
@@ -90,8 +90,82 @@ class TestSubOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        self.assertEquals((), sub_org_inline.get_readonly_fields(request))
+        self.assertEquals(('id', 'internal_type', 'data_source', 'origin_id'), sub_org_inline.get_readonly_fields(request))
         self.assertEquals(('id', 'internal_type', 'data_source', 'origin_id'),
+                          sub_org_inline.get_readonly_fields(request, obj=self.editable_org))
+
+
+class TestAddSubOrganizationInline(TestCase):
+
+    def setUp(self):
+        self.admin = make_admin()
+        self.normal_admin = make_admin(username='normal_admin', is_superuser=False)
+
+        self.site = AdminSite()
+        self.factory = RequestFactory()
+
+        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
+
+    def test_get_queryset(self):
+        sub_org_inline = AddSubOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.admin
+
+        qs = sub_org_inline.get_queryset(request)
+        self.assertQuerysetEqual(qs, [])
+
+    def test_has_add_permission(self):
+        sub_org_inline = AddSubOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.normal_admin
+
+        has_perm = sub_org_inline.has_add_permission(request)
+        self.assertFalse(has_perm)
+
+        clear_user_perm_cache(self.normal_admin)
+        perm = Permission.objects.get(codename='add_organization')
+        self.normal_admin.user_permissions.add(perm)
+
+        has_perm = sub_org_inline.has_add_permission(request)
+        self.assertTrue(has_perm)
+
+    def test_has_change_permission(self):
+        sub_org_inline = AddSubOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.normal_admin
+
+        has_perm = sub_org_inline.has_change_permission(request)
+        self.assertFalse(has_perm)
+
+        clear_user_perm_cache(self.normal_admin)
+        perm = Permission.objects.get(codename='change_organization')
+        self.normal_admin.user_permissions.add(perm)
+
+        has_perm = sub_org_inline.has_change_permission(request)
+        self.assertFalse(has_perm)
+
+    def test_has_delete_permission(self):
+        sub_org_inline = AddSubOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.normal_admin
+
+        has_perm = sub_org_inline.has_delete_permission(request)
+        self.assertFalse(has_perm)
+
+        clear_user_perm_cache(self.normal_admin)
+        perm = Permission.objects.get(codename='delete_organization')
+        self.normal_admin.user_permissions.add(perm)
+
+        has_perm = sub_org_inline.has_delete_permission(request)
+        self.assertFalse(has_perm)
+
+    def test_readonly_fields(self):
+        sub_org_inline = AddSubOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.admin
+
+        self.assertEquals(('internal_type',), sub_org_inline.get_readonly_fields(request))
+        self.assertEquals(('internal_type',),
                           sub_org_inline.get_readonly_fields(request, obj=self.editable_org))
 
 
@@ -217,9 +291,83 @@ class TestAffiliatedOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        self.assertEquals((), aff_org_inline.get_readonly_fields(request))
+        self.assertEquals(('id', 'internal_type', 'data_source', 'origin_id'), aff_org_inline.get_readonly_fields(request))
         self.assertEquals(('id', 'internal_type', 'data_source', 'origin_id'),
                           aff_org_inline.get_readonly_fields(request, obj=self.editable_org))
+
+
+class TestAddAffiliatedOrganizationInline(TestCase):
+
+    def setUp(self):
+        self.admin = make_admin()
+        self.normal_admin = make_admin(username='normal_admin', is_superuser=False)
+
+        self.site = AdminSite()
+        self.factory = RequestFactory()
+
+        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
+
+    def test_get_queryset(self):
+        sub_org_inline = AddAffiliatedOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.admin
+
+        qs = sub_org_inline.get_queryset(request)
+        self.assertQuerysetEqual(qs, [])
+
+    def test_has_add_permission(self):
+        sub_org_inline = AddAffiliatedOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.normal_admin
+
+        has_perm = sub_org_inline.has_add_permission(request)
+        self.assertFalse(has_perm)
+
+        clear_user_perm_cache(self.normal_admin)
+        perm = Permission.objects.get(codename='add_organization')
+        self.normal_admin.user_permissions.add(perm)
+
+        has_perm = sub_org_inline.has_add_permission(request)
+        self.assertTrue(has_perm)
+
+    def test_has_change_permission(self):
+        sub_org_inline = AddAffiliatedOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.normal_admin
+
+        has_perm = sub_org_inline.has_change_permission(request)
+        self.assertFalse(has_perm)
+
+        clear_user_perm_cache(self.normal_admin)
+        perm = Permission.objects.get(codename='change_organization')
+        self.normal_admin.user_permissions.add(perm)
+
+        has_perm = sub_org_inline.has_change_permission(request)
+        self.assertFalse(has_perm)
+
+    def test_has_delete_permission(self):
+        sub_org_inline = AddAffiliatedOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.normal_admin
+
+        has_perm = sub_org_inline.has_delete_permission(request)
+        self.assertFalse(has_perm)
+
+        clear_user_perm_cache(self.normal_admin)
+        perm = Permission.objects.get(codename='delete_organization')
+        self.normal_admin.user_permissions.add(perm)
+
+        has_perm = sub_org_inline.has_delete_permission(request)
+        self.assertFalse(has_perm)
+
+    def test_readonly_fields(self):
+        sub_org_inline = AddAffiliatedOrganizationInline(Organization, self.site)
+        request = self.factory.get('/fake-url/')
+        request.user = self.admin
+
+        self.assertEquals(('internal_type',), sub_org_inline.get_readonly_fields(request))
+        self.assertEquals(('internal_type',),
+                          sub_org_inline.get_readonly_fields(request, obj=self.editable_org))
 
 
 class TestProtectedAffiliatedOrganizationInline(TestCase):

@@ -53,7 +53,7 @@ class TestSubOrganizationInline(TestCase):
         self.normal_admin.user_permissions.add(perm)
 
         has_perm = sub_org_inline.has_add_permission(request)
-        self.assertTrue(has_perm)
+        self.assertFalse(has_perm)
 
     def test_has_change_permission(self):
         sub_org_inline = SubOrganizationInline(Organization, self.site)
@@ -202,6 +202,7 @@ class TestProtectedSubOrganizationInline(TestCase):
         request.user = self.admin
 
         has_perm = sub_org_inline.has_change_permission(request)
+        # permission refers to the *parent* organization, change permission must be given to allow listing
         self.assertTrue(has_perm)
 
     def test_has_delete_permission(self):
@@ -254,7 +255,7 @@ class TestAffiliatedOrganizationInline(TestCase):
         self.normal_admin.user_permissions.add(perm)
 
         has_perm = aff_org_inline.has_add_permission(request)
-        self.assertTrue(has_perm)
+        self.assertFalse(has_perm)
 
     def test_has_change_permission(self):
         aff_org_inline = AffiliatedOrganizationInline(Organization, self.site)
@@ -324,7 +325,7 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         self.assertFalse(has_perm)
 
         clear_user_perm_cache(self.normal_admin)
-        perm = Permission.objects.get(codename='add_organization')
+        perm = Permission.objects.get(codename='add_affiliated_organization')
         self.normal_admin.user_permissions.add(perm)
 
         has_perm = sub_org_inline.has_add_permission(request)
@@ -339,7 +340,7 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         self.assertFalse(has_perm)
 
         clear_user_perm_cache(self.normal_admin)
-        perm = Permission.objects.get(codename='change_organization')
+        perm = Permission.objects.get(codename='change_affiliated_organization')
         self.normal_admin.user_permissions.add(perm)
 
         has_perm = sub_org_inline.has_change_permission(request)
@@ -354,7 +355,7 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         self.assertFalse(has_perm)
 
         clear_user_perm_cache(self.normal_admin)
-        perm = Permission.objects.get(codename='delete_organization')
+        perm = Permission.objects.get(codename='delete_affiliated_organization')
         self.normal_admin.user_permissions.add(perm)
 
         has_perm = sub_org_inline.has_delete_permission(request)
@@ -404,6 +405,7 @@ class TestProtectedAffiliatedOrganizationInline(TestCase):
         request.user = self.admin
 
         has_perm = aff_org_inline.has_change_permission(request)
+        # permission refers to the *parent* organization, change permission must be given to allow listing
         self.assertTrue(has_perm)
 
     def test_has_delete_permission(self):

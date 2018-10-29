@@ -37,6 +37,9 @@ class SubOrganizationInline(admin.TabularInline):
         queryset = super().get_queryset(request)
         return queryset.filter(internal_type=self.organization_type, data_source__user_editable=True)
 
+    def has_add_permission(self, request):
+        return False
+
     def get_readonly_fields(self, request, obj=None):
         return ('id', 'internal_type', 'data_source', 'origin_id')
 
@@ -90,7 +93,7 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
         return False
 
     def has_change_permission(self, request, obj=None):
-        # has_change_permission must be True to allow listing, even in read only
+        # here obj refers to the *parent* organization, change permission to parent is needed
         if request.user.has_perm('django_orghierarchy.change__organization'):
             return True
         return super().has_change_permission(request, obj)
@@ -103,9 +106,7 @@ class AffiliatedOrganizationInline(SubOrganizationInline):
     organization_type = Organization.AFFILIATED
 
     def has_add_permission(self, request):
-        if request.user.has_perm('django_orghierarchy.add__organization') or request.user.has_perm('django_orghierarchy.add_affiliated_organization'):
-            return True
-        return super().has_add_permission(request)
+        return False
 
     def has_change_permission(self, request, obj=None):
         if request.user.has_perm('django_orghierarchy.change__organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
@@ -125,6 +126,11 @@ class AddAffiliatedOrganizationInline(AddSubOrganizationInline):
     form = AffiliatedOrganizationForm
     organization_type = Organization.AFFILIATED
 
+    def has_add_permission(self, request):
+        if request.user.has_perm('django_orghierarchy.add__organization') or request.user.has_perm('django_orghierarchy.add_affiliated_organization'):
+            return True
+        return super().has_add_permission(request)
+
 
 class ProtectedAffiliatedOrganizationInline(ProtectedSubOrganizationInline):
     verbose_name = _('non-editable affiliated organization')
@@ -134,6 +140,7 @@ class ProtectedAffiliatedOrganizationInline(ProtectedSubOrganizationInline):
     extra = 0
 
     def has_change_permission(self, request, obj=None):
+        # here obj refers to the *parent* organization, change permission to parent is needed
         if request.user.has_perm('django_orghierarchy.change__organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
             return True
         return super().has_change_permission(request, obj)

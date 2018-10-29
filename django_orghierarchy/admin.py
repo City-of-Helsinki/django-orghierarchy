@@ -150,8 +150,8 @@ class ProtectedAffiliatedOrganizationInline(ProtectedSubOrganizationInline):
 class OrganizationAdmin(DraggableMPTTAdmin):
     filter_horizontal = ('admin_users', 'regular_users')
     form = OrganizationForm
-    inlines = [ProtectedSubOrganizationInline, SubOrganizationInline,
-               ProtectedAffiliatedOrganizationInline, AffiliatedOrganizationInline]
+    inlines = [ProtectedSubOrganizationInline, SubOrganizationInline, AddSubOrganizationInline,
+               ProtectedAffiliatedOrganizationInline, AffiliatedOrganizationInline, AddAffiliatedOrganizationInline]
 
     # these fields may not be changed at all in existing organizations
     existing_readonly_fields = ('id', 'data_source', 'origin_id', 'internal_type')

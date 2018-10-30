@@ -53,8 +53,7 @@ class SubOrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
         fields = (
-            'internal_type', 'data_source', 'origin_id',
-            'classification', 'name', 'founding_date',
+            'name', 'founding_date', 'classification', 'data_source', 'origin_id', 'internal_type'
         )
         widgets = {
             'internal_type': widgets.HiddenInput,

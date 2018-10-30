@@ -90,8 +90,8 @@ class TestSubOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        self.assertEquals(('id', 'internal_type', 'data_source', 'origin_id'), sub_org_inline.get_readonly_fields(request))
-        self.assertEquals(('id', 'internal_type', 'data_source', 'origin_id'),
+        self.assertEquals(('data_source', 'origin_id', 'id'), sub_org_inline.get_readonly_fields(request))
+        self.assertEquals(('data_source', 'origin_id', 'id'),
                           sub_org_inline.get_readonly_fields(request, obj=self.editable_org))
 
 
@@ -164,8 +164,8 @@ class TestAddSubOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        self.assertEquals(('internal_type',), sub_org_inline.get_readonly_fields(request))
-        self.assertEquals(('internal_type',),
+        self.assertEquals(('id',), sub_org_inline.get_readonly_fields(request))
+        self.assertEquals(('id',),
                           sub_org_inline.get_readonly_fields(request, obj=self.editable_org))
 
 
@@ -292,8 +292,8 @@ class TestAffiliatedOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        self.assertEquals(('id', 'internal_type', 'data_source', 'origin_id'), aff_org_inline.get_readonly_fields(request))
-        self.assertEquals(('id', 'internal_type', 'data_source', 'origin_id'),
+        self.assertEquals(('data_source', 'origin_id', 'id'), aff_org_inline.get_readonly_fields(request))
+        self.assertEquals(('data_source', 'origin_id', 'id'),
                           aff_org_inline.get_readonly_fields(request, obj=self.editable_org))
 
 
@@ -366,8 +366,8 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        self.assertEquals(('internal_type',), sub_org_inline.get_readonly_fields(request))
-        self.assertEquals(('internal_type',),
+        self.assertEquals(('id',), sub_org_inline.get_readonly_fields(request))
+        self.assertEquals(('id',),
                           sub_org_inline.get_readonly_fields(request, obj=self.editable_org))
 
 

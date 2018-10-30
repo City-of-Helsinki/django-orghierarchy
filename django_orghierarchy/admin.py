@@ -31,6 +31,8 @@ class SubOrganizationInline(admin.TabularInline):
     fk_name = 'parent'
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
+    # these have to be specified separately to prevent seeing redundant internal_type field
+    fields = ('name', 'founding_date', 'classification', 'data_source', 'origin_id')
     extra = 0
 
     def get_queryset(self, request):
@@ -41,7 +43,7 @@ class SubOrganizationInline(admin.TabularInline):
         return False
 
     def get_readonly_fields(self, request, obj=None):
-        return ('id', 'internal_type', 'data_source', 'origin_id')
+        return ('data_source', 'origin_id', 'id')
 
 
 class AddSubOrganizationInline(admin.TabularInline):
@@ -51,6 +53,8 @@ class AddSubOrganizationInline(admin.TabularInline):
     fk_name = 'parent'
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
+    # these have to be specified separately to prevent seeing redundant internal_type field
+    fields = ('name', 'founding_date', 'classification', 'data_source', 'origin_id')
     extra = 1
 
     def get_queryset(self, request):
@@ -65,7 +69,7 @@ class AddSubOrganizationInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         # we have to have this separate since obj is the parent org, not the new empty one
         # so new suborganizations to be added allow all fields to be defined
-        return ('internal_type',)
+        return ('id',)
 
 
 class ProtectedSubOrganizationInline(admin.TabularInline):
@@ -76,7 +80,7 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
     # these have to be specified separately to prevent seeing redundant internal_type field
-    fields = ('data_source', 'origin_id', 'classification', 'name', 'founding_date',)
+    fields = ('name', 'founding_date', 'classification', 'data_source', 'origin_id')
     extra = 0
 
     def get_readonly_fields(self, request, obj=None):

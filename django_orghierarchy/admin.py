@@ -26,8 +26,8 @@ class OrganizationClassAdmin(admin.ModelAdmin):
 
 class SubOrganizationInline(admin.TabularInline):
     model = Organization
-    verbose_name = _('sub organization')
-    verbose_name_plural = _('sub organizations')
+    verbose_name = _('added sub organization')
+    verbose_name_plural = _('added sub organizations')
     fk_name = 'parent'
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
@@ -104,8 +104,8 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
 
 
 class AffiliatedOrganizationInline(SubOrganizationInline):
-    verbose_name = _('affiliated organization')
-    verbose_name_plural = _('affiliated organizations')
+    verbose_name = _('added affiliated organization')
+    verbose_name_plural = _('added affiliated organizations')
     form = AffiliatedOrganizationForm
     organization_type = Organization.AFFILIATED
 

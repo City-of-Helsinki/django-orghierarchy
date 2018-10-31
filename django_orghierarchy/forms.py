@@ -7,7 +7,6 @@ from .utils import get_data_source_model
 
 
 class OrganizationForm(forms.ModelForm):
-    data_source = forms.ModelChoiceField(queryset=get_data_source_model().objects.filter(user_editable=True))
 
     class Meta:
         model = Organization
@@ -30,6 +29,10 @@ class OrganizationForm(forms.ModelForm):
                 qs = qs.exclude(id=self.instance.id)
             self.fields['replaced_by'].queryset = qs
 
+        if 'data_source' in self.fields:
+            # Only allow selecting data source within editable sources
+            self.fields['data_source'].queryset = get_data_source_model().objects.filter(user_editable=True)
+
         if 'parent' in self.fields and self.instance.id:
             # prevent recursive reference
             desc_ids = self.instance.get_descendants(include_self=True).values_list('id', flat=True)
@@ -48,7 +51,6 @@ class OrganizationForm(forms.ModelForm):
 
 class SubOrganizationForm(forms.ModelForm):
     default_internal_type = Organization.NORMAL
-    data_source = forms.ModelChoiceField(queryset=get_data_source_model().objects.filter(user_editable=True))
 
     class Meta:
         model = Organization
@@ -63,6 +65,11 @@ class SubOrganizationForm(forms.ModelForm):
         if 'initial' not in kwargs:
             kwargs['initial'] = {}
         kwargs['initial']['internal_type'] = self.default_internal_type
+
+        # the fields can be dynamically exclude, for example set them to readonly in admin
+        if 'data_source' in self.fields:
+            # Only allow selecting data source within editable sources
+            self.fields['data_source'].queryset = get_data_source_model().objects.filter(user_editable=True)
         super().__init__(*args, **kwargs)
 
     def clean_internal_type(self):

@@ -130,6 +130,11 @@ class AddAffiliatedOrganizationInline(AddSubOrganizationInline):
     form = AffiliatedOrganizationForm
     organization_type = Organization.AFFILIATED
 
+    def __init__(self, *args, **kwargs):
+        # this is the only admin that needs the (hidden) internal_type field, to create a new affiliated organization
+        super().__init__(*args, **kwargs)
+        self.fields += ('internal_type',)
+
     def has_add_permission(self, request):
         if request.user.has_perm('django_orghierarchy.add__organization') or request.user.has_perm('django_orghierarchy.add_affiliated_organization'):
             return True

@@ -125,6 +125,7 @@ class RestAPIImporter:
 
         self._organization_classes = {}
         self._data_sources = {}
+        self._imported_objs = {}
 
     @property
     def fields(self):
@@ -221,6 +222,7 @@ class RestAPIImporter:
 
         config = self.field_config.get('origin_id') or {}
         origin_id = self._get_field_value(data, 'origin_id', config)
+
         data_source = self._get_field_value(data, 'data_source', config)
         if not data_source:
             data_source = self._get_field_value(self.default_data_source, 'data_source', config)
@@ -229,14 +231,11 @@ class RestAPIImporter:
             # enforce lower case id standard, but recognize upper case ids as equal:
             organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
             logger.info('Organization already exists: {0}'.format(organization.id))
-
             for field in self.update_fields:
                 config = self.field_config.get(field) or {}
                 value = self._get_field_value(data, field, config)
                 setattr(organization, field, value)
             organization.save()
-
-            return organization
         except Organization.DoesNotExist:
             object_data = {}
             for field in self.fields:
@@ -244,7 +243,11 @@ class RestAPIImporter:
                 object_data[field] = self._get_field_value(data, field, config)
 
             organization = Organization.objects.create(**object_data)
-            return organization
+
+        if 'url' in data and 'url' not in self._imported_objs:
+            self._imported_objs[data['url']] = organization
+
+        return organization
 
     def _import_data_source(self, data):
         """Import data source
@@ -333,6 +336,10 @@ class RestAPIImporter:
         if data_type == DataType.STR_LOWER:
             value = str(value).lower()
         elif data_type == DataType.LINK:
+            # Check cache first to decrease API calls
+            if value in self._imported_objs:
+                return self._imported_objs[value]
+
             value = self._get_link_data(value)
         elif data_type == DataType.REGEX:
             try:

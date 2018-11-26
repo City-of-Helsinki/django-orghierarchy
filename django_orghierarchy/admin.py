@@ -167,18 +167,23 @@ class OrganizationAdmin(DraggableMPTTAdmin):
     # these fields may not be changed at all in protected organizations
     protected_readonly_fields = existing_readonly_fields + ('origin_id', 'classification', 'name', 'founding_date',
                                                             'dissolution_date', 'parent',)
+    search_fields = ('name',)
 
     def get_queryset(self, request):
-        if not request.user.is_superuser:
-            if not request.user.admin_organizations.all():
-                return []
-            # regular admins have rights to all organizations below their level
-            admin_orgs = []
-            for admin_org in request.user.admin_organizations.all():
-                admin_orgs.append(admin_org.get_descendants(include_self=True))
-            # for multiple admin_orgs, we have to combine the querysets and filter distinct
-            return reduce(lambda a, b: a | b, admin_orgs).distinct()
-        return super().get_queryset(request)
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+
+        if not request.user.admin_organizations.all():
+            return qs.none()
+        # FIXME: Autocomplete breaks if view access is not granted to all!!
+
+        # regular admins have rights to all organizations below their level
+        admin_orgs = []
+        for admin_org in request.user.admin_organizations.all():
+            admin_orgs.append(admin_org.get_descendants(include_self=True))
+        # for multiple admin_orgs, we have to combine the querysets and filter distinct
+        return reduce(lambda a, b: a | b, admin_orgs).distinct()
 
     def get_readonly_fields(self, request, obj=None):
         has_write_access = False

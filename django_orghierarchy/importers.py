@@ -89,11 +89,11 @@ class RestAPIImporter:
         'results_key': 'results',
         'fields': [
             'data_source', 'origin_id', 'classification',
-            'name', 'founding_date', 'dissolution_date',
+            'name', 'abbreviation', 'founding_date', 'dissolution_date',
             'parent',
         ],
         'update_fields': [
-            'classification', 'name', 'founding_date',
+            'classification', 'name', 'abbreviation', 'founding_date',
             'dissolution_date', 'parent',
         ],
         'field_config': {

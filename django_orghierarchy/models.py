@@ -81,6 +81,7 @@ class Organization(MPTTModel, DataModel):
     classification = models.ForeignKey(OrganizationClass, on_delete=models.PROTECT, blank=True, null=True,
                                        help_text=_('An organization category, e.g. committee'))
     name = models.CharField(max_length=255, help_text=_('A primary name, e.g. a legally recognized name'))
+    abbreviation = models.CharField(max_length=50, help_text=_('A commonly used abbreviation'), blank=True, null=True)
     founding_date = models.DateField(blank=True, null=True, help_text=_('A date of founding'))
     dissolution_date = models.DateField(blank=True, null=True, help_text=_('A date of dissolution'))
     parent = TreeForeignKey(

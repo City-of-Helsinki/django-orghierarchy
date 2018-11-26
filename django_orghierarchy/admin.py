@@ -165,8 +165,8 @@ class OrganizationAdmin(DraggableMPTTAdmin):
     # these fields may not be changed at all in existing organizations
     existing_readonly_fields = ('id', 'data_source', 'origin_id', 'internal_type')
     # these fields may not be changed at all in protected organizations
-    protected_readonly_fields = existing_readonly_fields + ('origin_id', 'classification', 'name', 'founding_date',
-                                                            'dissolution_date', 'parent',)
+    protected_readonly_fields = existing_readonly_fields + ('origin_id', 'classification', 'name', 'abbreviation',
+                                                            'founding_date', 'dissolution_date', 'parent',)
     search_fields = ('name',)
 
     def get_queryset(self, request):

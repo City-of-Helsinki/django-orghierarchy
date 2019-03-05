@@ -82,6 +82,7 @@ class Organization(MPTTModel, DataModel):
                                        help_text=_('An organization category, e.g. committee'))
     name = models.CharField(max_length=255, help_text=_('A primary name, e.g. a legally recognized name'))
     abbreviation = models.CharField(max_length=50, help_text=_('A commonly used abbreviation'), blank=True, null=True)
+    distinct_name = models.CharField(max_length=400, help_text=_('A distinct name for this organization (generated automatically)'), editable=False, null=True)
     founding_date = models.DateField(blank=True, null=True, help_text=_('A date of founding'))
     dissolution_date = models.DateField(blank=True, null=True, help_text=_('A date of dissolution'))
     parent = TreeForeignKey(
@@ -112,9 +113,13 @@ class Organization(MPTTModel, DataModel):
         )
 
     def __str__(self):
+        if self.distinct_name:
+            name = self.distinct_name
+        else:
+            name = self.name
         if self.dissolution_date:
             return self.name + ' (dissolved)'
-        return self.name
+        return name
 
     @transaction.atomic
     def save(self, *args, **kwargs):
@@ -140,6 +145,40 @@ class Organization(MPTTModel, DataModel):
             }
             # we must not call move with original self, its fields were outdated by save
             new_self.move_to(new_self.parent, move_positions[self.internal_type])
+
+    def generate_distinct_name(self, levels=1):
+        if self.data_source_id == 'helsinki':
+            ROOTS = ['Kaupunki', 'Valtuusto', 'Hallitus', 'Toimiala', 'Lautakunta', 'Toimikunta', 'Jaosto']
+            stopper_classes = OrganizationClass.objects\
+                .filter(data_source='helsinki', name__in=ROOTS).values_list('id', flat=True)
+            stopper_parents = Organization.objects\
+                .filter(data_source='helsinki', name='Kaupunginkanslia', dissolution_date=None)\
+                .values_list('id', flat=True)
+        else:
+            stopper_classes = []
+            stopper_parents = []
+
+        if (stopper_classes and self.classification_id in stopper_classes) or \
+                (stopper_parents and self.id in stopper_parents):
+            return self.name
+
+        name = self.name
+        parent = self.parent
+        for level in range(levels):
+            if parent is None:
+                break
+            if parent.abbreviation:
+                parent_name = parent.abbreviation
+            else:
+                parent_name = parent.name
+            name = "%s / %s" % (parent_name, name)
+            if stopper_classes and parent.classification_id in stopper_classes:
+                break
+            if stopper_parents and parent.id in stopper_parents:
+                break
+            parent = parent.parent
+
+        return name
 
     @property
     def sub_organizations(self):

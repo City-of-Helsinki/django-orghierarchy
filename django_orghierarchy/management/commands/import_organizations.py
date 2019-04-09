@@ -18,6 +18,7 @@ class Command(BaseCommand):
             '--rename-data-source',
             dest='rename_data_source',
             nargs='+',
+            default='helsinki:ahjo',
             help='Rename data sources. Renaming should be specified as <old_identifier>:<new_identifier>'
         )
 

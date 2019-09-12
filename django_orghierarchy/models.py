@@ -104,6 +104,8 @@ class Organization(MPTTModel, DataModel):
     )
 
     class Meta:
+        verbose_name = _('organization')
+        verbose_name_plural = _('organizations')
         unique_together = ('data_source', 'origin_id')
         permissions = (
             ('add_affiliated_organization', 'Can add affiliated organization'),

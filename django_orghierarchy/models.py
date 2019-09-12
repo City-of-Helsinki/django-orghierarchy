@@ -180,6 +180,10 @@ class Organization(MPTTModel, DataModel):
 
         return name
 
+    def autocomplete_label(self):
+        return self.distinct_name
+    autocomplete_search_field = 'distinct_name'
+
     @property
     def sub_organizations(self):
         return self.children.filter(internal_type=self.NORMAL)

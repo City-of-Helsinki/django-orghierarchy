@@ -1,6 +1,7 @@
 import copy
 import logging
 import re
+import datetime
 from enum import Enum
 
 import requests
@@ -89,11 +90,11 @@ class RestAPIImporter:
         'results_key': 'results',
         'fields': [
             'data_source', 'origin_id', 'classification',
-            'name', 'founding_date', 'dissolution_date',
+            'name', 'abbreviation', 'founding_date', 'dissolution_date',
             'parent',
         ],
         'update_fields': [
-            'classification', 'name', 'founding_date',
+            'classification', 'name', 'abbreviation', 'founding_date',
             'dissolution_date', 'parent',
         ],
         'field_config': {
@@ -125,6 +126,7 @@ class RestAPIImporter:
 
         self._organization_classes = {}
         self._data_sources = {}
+        self._imported_objs = {}
 
     @property
     def fields(self):
@@ -221,6 +223,7 @@ class RestAPIImporter:
 
         config = self.field_config.get('origin_id') or {}
         origin_id = self._get_field_value(data, 'origin_id', config)
+
         data_source = self._get_field_value(data, 'data_source', config)
         if not data_source:
             data_source = self._get_field_value(self.default_data_source, 'data_source', config)
@@ -228,15 +231,22 @@ class RestAPIImporter:
         try:
             # enforce lower case id standard, but recognize upper case ids as equal:
             organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
-            logger.info('Organization already exists: {0}'.format(organization.id))
-
+            organization._changed = []
             for field in self.update_fields:
                 config = self.field_config.get(field) or {}
                 value = self._get_field_value(data, field, config)
-                setattr(organization, field, value)
-            organization.save()
+                old_value = getattr(organization, field)
+                if isinstance(old_value, datetime.date):
+                    old_value = old_value.isoformat()
+                if old_value != value:
+                    setattr(organization, field, value)
+                    if not organization._changed:
+                        logger.info('%s' % organization)
+                    logger.info('\t%s: %s -> %s' % (field, old_value, value))
+                    organization._changed.append(field)
 
-            return organization
+            if organization._changed:
+                organization.save()
         except Organization.DoesNotExist:
             object_data = {}
             for field in self.fields:
@@ -244,7 +254,11 @@ class RestAPIImporter:
                 object_data[field] = self._get_field_value(data, field, config)
 
             organization = Organization.objects.create(**object_data)
-            return organization
+
+        if 'url' in data and 'url' not in self._imported_objs:
+            self._imported_objs[data['url']] = organization
+
+        return organization
 
     def _import_data_source(self, data):
         """Import data source
@@ -280,7 +294,7 @@ class RestAPIImporter:
 
         The iterator will follow over next page links if available.
         """
-        logger.info('Start importing data from {0} ...'.format(url))
+        logger.debug('Start importing data from {0} ...'.format(url))
 
         r = requests.get(url)
         try:
@@ -292,7 +306,7 @@ class RestAPIImporter:
         for data_item in data[self.results_key]:
             yield data_item
 
-        logger.info('Importing data from {0} completed'.format(url))
+        logger.debug('Importing data from {0} completed'.format(url))
 
         if self.next_key and data[self.next_key]:
             next_url = data[self.next_key]
@@ -333,6 +347,10 @@ class RestAPIImporter:
         if data_type == DataType.STR_LOWER:
             value = str(value).lower()
         elif data_type == DataType.LINK:
+            # Check cache first to decrease API calls
+            if value in self._imported_objs:
+                return self._imported_objs[value]
+
             value = self._get_link_data(value)
         elif data_type == DataType.REGEX:
             try:

@@ -1,0 +1,143 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-12 18:29+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: django_orghierarchy/admin.py:29
+msgid "added sub organization"
+msgstr ""
+
+#: django_orghierarchy/admin.py:30
+msgid "added sub organizations"
+msgstr ""
+
+#: django_orghierarchy/admin.py:51
+msgid "add sub organization"
+msgstr ""
+
+#: django_orghierarchy/admin.py:52
+msgid "add sub organizations"
+msgstr ""
+
+#: django_orghierarchy/admin.py:77
+msgid "non-editable sub organization"
+msgstr ""
+
+#: django_orghierarchy/admin.py:78
+msgid "non-editable sub organizations"
+msgstr ""
+
+#: django_orghierarchy/admin.py:107
+msgid "added affiliated organization"
+msgstr ""
+
+#: django_orghierarchy/admin.py:108
+msgid "added affiliated organizations"
+msgstr ""
+
+#: django_orghierarchy/admin.py:128
+msgid "add affiliated organization"
+msgstr ""
+
+#: django_orghierarchy/admin.py:129
+msgid "add affiliated organizations"
+msgstr ""
+
+#: django_orghierarchy/admin.py:145
+msgid "non-editable affiliated organization"
+msgstr ""
+
+#: django_orghierarchy/admin.py:146
+msgid "non-editable affiliated organizations"
+msgstr ""
+
+#: django_orghierarchy/apps.py:7
+msgid "Organizations"
+msgstr "Organisaatiot"
+
+#: django_orghierarchy/forms.py:47
+msgid "Affiliated organization must have a parent organization"
+msgstr ""
+
+#: django_orghierarchy/models.py:17
+msgid "Objects may be edited by users"
+msgstr ""
+
+#: django_orghierarchy/models.py:44
+msgid "The time at which the resource was created"
+msgstr ""
+
+#: django_orghierarchy/models.py:45
+msgid "The time at which the resource was updated"
+msgstr ""
+
+#: django_orghierarchy/models.py:63
+msgid "Organization class"
+msgstr "Organisaation luokka"
+
+#: django_orghierarchy/models.py:64
+msgid "Organization classes"
+msgstr "Organisaation luokat"
+
+#: django_orghierarchy/models.py:75
+msgid "Normal organization"
+msgstr "Tavallinen organisaatio"
+
+#: django_orghierarchy/models.py:76
+msgid "Affiliated organization"
+msgstr ""
+
+#: django_orghierarchy/models.py:82
+msgid "An organization category, e.g. committee"
+msgstr ""
+
+#: django_orghierarchy/models.py:83
+msgid "A primary name, e.g. a legally recognized name"
+msgstr ""
+
+#: django_orghierarchy/models.py:84
+msgid "A commonly used abbreviation"
+msgstr "Yleisesti käytetty lyhenne"
+
+#: django_orghierarchy/models.py:85
+msgid "A distinct name for this organization (generated automatically)"
+msgstr "Tämän organisaation yksilöivä nimi (muodostetaan automaattisesti)"
+
+#: django_orghierarchy/models.py:86
+msgid "A date of founding"
+msgstr "Perustamispäivämäärä"
+
+#: django_orghierarchy/models.py:87
+msgid "A date of dissolution"
+msgstr "Lakkauttamispäivämäärä"
+
+#: django_orghierarchy/models.py:90
+msgid "The organizations that contain this organization"
+msgstr ""
+
+#: django_orghierarchy/models.py:102
+msgid "The organization that replaces this organization"
+msgstr ""
+
+#: django_orghierarchy/models.py:107
+msgid "organization"
+msgstr "organisaatio"
+
+#: django_orghierarchy/models.py:108
+msgid "organizations"
+msgstr "organisaatiot"

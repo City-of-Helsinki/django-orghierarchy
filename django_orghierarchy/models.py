@@ -36,7 +36,10 @@ class DataSource(AbstractDataSource):
 
 class DataModel(models.Model):
     id = models.CharField(max_length=255, primary_key=True, editable=False)
-    data_source = models.ForeignKey(swapper.get_model_name('django_orghierarchy', 'DataSource'), blank=True, null=True)
+    data_source = models.ForeignKey(
+        swapper.get_model_name('django_orghierarchy', 'DataSource'),
+        blank=True, null=True, on_delete=models.SET_NULL
+    )
     origin_id = models.CharField(max_length=255, blank=True)
     created_time = models.DateTimeField(default=timezone.now, help_text=_('The time at which the resource was created'))
     last_modified_time = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))
@@ -78,21 +81,31 @@ class Organization(MPTTModel, DataModel):
     classification = models.ForeignKey(OrganizationClass, on_delete=models.PROTECT, blank=True, null=True,
                                        help_text=_('An organization category, e.g. committee'))
     name = models.CharField(max_length=255, help_text=_('A primary name, e.g. a legally recognized name'))
+    abbreviation = models.CharField(max_length=50, help_text=_('A commonly used abbreviation'), blank=True, null=True)
+    distinct_name = models.CharField(max_length=400, help_text=_('A distinct name for this organization (generated automatically)'), editable=False, null=True)
     founding_date = models.DateField(blank=True, null=True, help_text=_('A date of founding'))
     dissolution_date = models.DateField(blank=True, null=True, help_text=_('A date of dissolution'))
-    parent = TreeForeignKey('self', null=True, blank=True, related_name='children',
-                            help_text=_('The organizations that contain this organization'))
+    parent = TreeForeignKey(
+        'self', null=True, blank=True, related_name='children',
+        help_text=_('The organizations that contain this organization'),
+        on_delete=models.SET_NULL
+    )
     admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='admin_organizations')
     regular_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
                                            related_name='organization_memberships')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_organizations',
-                                   null=True, blank=True, editable=False)
+                                   null=True, blank=True, editable=False, on_delete=models.SET_NULL)
     last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='modified_organizations',
-                                         null=True, blank=True, editable=False)
-    replaced_by = models.OneToOneField('self', null=True, blank=True, related_name='replaced_organization',
-                                       help_text=_('The organization that replaces this organization'))
+                                         null=True, blank=True, editable=False, on_delete=models.SET_NULL)
+    replaced_by = models.OneToOneField(
+        'self', null=True, blank=True, related_name='replaced_organization',
+        help_text=_('The organization that replaces this organization'),
+        on_delete=models.SET_NULL
+    )
 
     class Meta:
+        verbose_name = _('organization')
+        verbose_name_plural = _('organizations')
         unique_together = ('data_source', 'origin_id')
         permissions = (
             ('add_affiliated_organization', 'Can add affiliated organization'),
@@ -102,13 +115,20 @@ class Organization(MPTTModel, DataModel):
         )
 
     def __str__(self):
+        if self.distinct_name:
+            name = self.distinct_name
+        else:
+            name = self.name
         if self.dissolution_date:
             return self.name + ' (dissolved)'
-        return self.name
+        return name
 
     @transaction.atomic
     def save(self, *args, **kwargs):
+        new_object = not self.pk
         super().save(*args, **kwargs)
+        if not new_object:
+            return
 
         # before moving again, the instance must be refreshed from db as it has been moved!
         # https://github.com/django-mptt/django-mptt/issues/257 and
@@ -127,6 +147,44 @@ class Organization(MPTTModel, DataModel):
             }
             # we must not call move with original self, its fields were outdated by save
             new_self.move_to(new_self.parent, move_positions[self.internal_type])
+
+    def generate_distinct_name(self, levels=1):
+        if self.data_source_id == 'helsinki':
+            ROOTS = ['Kaupunki', 'Valtuusto', 'Hallitus', 'Toimiala', 'Lautakunta', 'Toimikunta', 'Jaosto']
+            stopper_classes = OrganizationClass.objects\
+                .filter(data_source='helsinki', name__in=ROOTS).values_list('id', flat=True)
+            stopper_parents = Organization.objects\
+                .filter(data_source='helsinki', name='Kaupunginkanslia', dissolution_date=None)\
+                .values_list('id', flat=True)
+        else:
+            stopper_classes = []
+            stopper_parents = []
+
+        if (stopper_classes and self.classification_id in stopper_classes) or \
+                (stopper_parents and self.id in stopper_parents):
+            return self.name
+
+        name = self.name
+        parent = self.parent
+        for level in range(levels):
+            if parent is None:
+                break
+            if parent.abbreviation:
+                parent_name = parent.abbreviation
+            else:
+                parent_name = parent.name
+            name = "%s / %s" % (parent_name, name)
+            if stopper_classes and parent.classification_id in stopper_classes:
+                break
+            if stopper_parents and parent.id in stopper_parents:
+                break
+            parent = parent.parent
+
+        return name
+
+    def autocomplete_label(self):
+        return self.distinct_name
+    autocomplete_search_field = 'distinct_name'
 
     @property
     def sub_organizations(self):

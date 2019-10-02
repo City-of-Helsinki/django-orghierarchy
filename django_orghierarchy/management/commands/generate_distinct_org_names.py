@@ -13,10 +13,22 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        # First we make sure the abbreviations are unique
+        orgs = Organization.objects.filter(dissolution_date=None).select_related('parent')
+        for org in orgs:
+            if org.abbreviation:
+                dupe_descendants = org.get_descendants().filter(abbreviation=org.abbreviation)
+                for dupe in dupe_descendants:
+                    print('%s (abbreviation %s -> None)' % (dupe, dupe.abbreviation))
+                    dupe.abbreviation = None
+                    dupe.save(update_fields=['abbreviation'])
+
+        # Refresh from db
         orgs = Organization.objects.filter(dissolution_date=None).select_related('parent')
         orgs_by_name = {}
         for org in orgs:
             orgs_by_name.setdefault(org.name, []).append(org)
+
         for org_name, duplicate_orgs in orgs_by_name.items():
             if not options['all'] and len(duplicate_orgs) == 1:
                 continue

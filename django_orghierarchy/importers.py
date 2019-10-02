@@ -1,6 +1,7 @@
 import copy
 import logging
 import re
+import datetime
 from enum import Enum
 
 import requests
@@ -230,12 +231,22 @@ class RestAPIImporter:
         try:
             # enforce lower case id standard, but recognize upper case ids as equal:
             organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
-            logger.info('Organization already exists: {0}'.format(organization.id))
+            organization._changed = []
             for field in self.update_fields:
                 config = self.field_config.get(field) or {}
                 value = self._get_field_value(data, field, config)
-                setattr(organization, field, value)
-            organization.save()
+                old_value = getattr(organization, field)
+                if isinstance(old_value, datetime.date):
+                    old_value = old_value.isoformat()
+                if old_value != value:
+                    setattr(organization, field, value)
+                    if not organization._changed:
+                        logger.info('%s' % organization)
+                    logger.info('\t%s: %s -> %s' % (field, old_value, value))
+                    organization._changed.append(field)
+
+            if organization._changed:
+                organization.save()
         except Organization.DoesNotExist:
             object_data = {}
             for field in self.fields:
@@ -283,7 +294,7 @@ class RestAPIImporter:
 
         The iterator will follow over next page links if available.
         """
-        logger.info('Start importing data from {0} ...'.format(url))
+        logger.debug('Start importing data from {0} ...'.format(url))
 
         r = requests.get(url)
         try:
@@ -295,7 +306,7 @@ class RestAPIImporter:
         for data_item in data[self.results_key]:
             yield data_item
 
-        logger.info('Importing data from {0} completed'.format(url))
+        logger.debug('Importing data from {0} completed'.format(url))
 
         if self.next_key and data[self.next_key]:
             next_url = data[self.next_key]

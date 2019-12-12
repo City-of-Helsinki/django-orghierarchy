@@ -9,5 +9,5 @@ router.register(r'organization', OrganizationViewSet, 'organization')
 
 urlpatterns = [
     url(r"^admin/", admin.site.urls),
-    url(r'^api/', include(router.urls, namespace='api')),
+    url(r'^api/', include((router.urls, 'api'), namespace='api')),
 ]

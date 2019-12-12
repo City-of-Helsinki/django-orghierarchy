@@ -243,6 +243,6 @@ class OrganizationAdmin(DraggableMPTTAdmin):
         actions = super().get_actions(request)
 
         if (not request.user.has_perm('django_orghierarchy.delete_organization')
-            and 'delete_selected' in actions):
+                and 'delete_selected' in actions):
             del actions['delete_selected']
         return actions

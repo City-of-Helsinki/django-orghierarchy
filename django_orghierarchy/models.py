@@ -36,7 +36,8 @@ class DataSource(AbstractDataSource):
 
 class DataModel(models.Model):
     id = models.CharField(max_length=255, primary_key=True, editable=False)
-    data_source = models.ForeignKey(swapper.get_model_name('django_orghierarchy', 'DataSource'), blank=True, null=True)
+    data_source = models.ForeignKey(
+        swapper.get_model_name('django_orghierarchy', 'DataSource'), on_delete=models.CASCADE, blank=True, null=True)
     origin_id = models.CharField(max_length=255, blank=True)
     created_time = models.DateTimeField(default=timezone.now, help_text=_('The time at which the resource was created'))
     last_modified_time = models.DateTimeField(auto_now=True, help_text=_('The time at which the resource was updated'))
@@ -80,17 +81,20 @@ class Organization(MPTTModel, DataModel):
     name = models.CharField(max_length=255, help_text=_('A primary name, e.g. a legally recognized name'))
     founding_date = models.DateField(blank=True, null=True, help_text=_('A date of founding'))
     dissolution_date = models.DateField(blank=True, null=True, help_text=_('A date of dissolution'))
-    parent = TreeForeignKey('self', null=True, blank=True, related_name='children',
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children',
                             help_text=_('The organizations that contain this organization'))
     admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='admin_organizations')
     regular_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
                                            related_name='organization_memberships')
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_organizations',
-                                   null=True, blank=True, editable=False)
-    last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='modified_organizations',
-                                         null=True, blank=True, editable=False)
-    replaced_by = models.OneToOneField('self', null=True, blank=True, related_name='replaced_organization',
-                                       help_text=_('The organization that replaces this organization'))
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_organizations',
+        null=True, blank=True, editable=False)
+    last_modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='modified_organizations',
+        null=True, blank=True, editable=False)
+    replaced_by = models.OneToOneField(
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='replaced_organization',
+        help_text=_('The organization that replaces this organization'))
 
     class Meta:
         unique_together = ('data_source', 'origin_id')

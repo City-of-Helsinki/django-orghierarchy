@@ -129,8 +129,16 @@ class Organization(MPTTModel, DataModel):
                 self.AFFILIATED: 'first-child',
                 self.NORMAL: 'last-child',
             }
-            # we must not call move with original self, its fields were outdated by save
-            new_self.move_to(new_self.parent, move_positions[self.internal_type])
+            position = move_positions[self.internal_type]
+
+            # Only perform move_to if this organization is not already in the correct place
+            # otherwise it would result in an infinite loop.
+            if (
+                (position == 'first-child' and self.get_previous_sibling() is not None)
+                or (position == 'last-child' and self.get_next_sibling() is not None)
+            ):
+                # we must not call move with original self, its fields were outdated by save
+                new_self.move_to(new_self.parent, position)
 
     @property
     def sub_organizations(self):

@@ -1,4 +1,4 @@
-django>=2.2,<3.0
+django<3.0
 django-mptt>=0.9
 djangorestframework
 requests

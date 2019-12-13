@@ -87,10 +87,10 @@ class Organization(MPTTModel, DataModel):
     regular_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
                                            related_name='organization_memberships')
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_organizations',
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='created_organizations',
         null=True, blank=True, editable=False)
     last_modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='modified_organizations',
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='modified_organizations',
         null=True, blank=True, editable=False)
     replaced_by = models.OneToOneField(
         'self', on_delete=models.CASCADE, null=True, blank=True, related_name='replaced_organization',

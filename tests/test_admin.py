@@ -1,12 +1,11 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase, RequestFactory
 
-from django_orghierarchy.admin import OrganizationAdmin, SubOrganizationInline, AddSubOrganizationInline, ProtectedSubOrganizationInline,\
-    AffiliatedOrganizationInline, AddAffiliatedOrganizationInline, ProtectedAffiliatedOrganizationInline
-from django_orghierarchy.forms import OrganizationForm
+from django_orghierarchy.admin import OrganizationAdmin, SubOrganizationInline, AddSubOrganizationInline,\
+    ProtectedSubOrganizationInline, AffiliatedOrganizationInline, AddAffiliatedOrganizationInline,\
+    ProtectedAffiliatedOrganizationInline
 from django_orghierarchy.models import DataSource, Organization
 from .factories import OrganizationClassFactory, OrganizationFactory, DataSourceFactory
 from .utils import clear_user_perm_cache, make_admin
@@ -432,7 +431,8 @@ class TestOrganizationAdmin(TestCase):
         self.factory = RequestFactory()
 
         self.organization = OrganizationFactory()
-        self.affiliated_organization = OrganizationFactory(internal_type=Organization.AFFILIATED, parent=self.organization)
+        self.affiliated_organization = OrganizationFactory(
+            internal_type=Organization.AFFILIATED, parent=self.organization)
         self.editable_organization = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
 
     def test_get_queryset(self):
@@ -452,7 +452,11 @@ class TestOrganizationAdmin(TestCase):
         # test against superuser admin
         request.user = self.admin
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization), repr(self.affiliated_organization), repr(self.editable_organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
+        self.assertQuerysetEqual(
+            qs,
+            [repr(self.organization), repr(self.affiliated_organization), repr(self.editable_organization),
+             repr(org), repr(sub_org), repr(another_sub_org)],
+            ordered=False)
 
         # test against non-superuser admin
         request.user = normal_admin
@@ -465,7 +469,11 @@ class TestOrganizationAdmin(TestCase):
 
         org.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.organization), repr(self.affiliated_organization), repr(org), repr(sub_org), repr(another_sub_org)], ordered=False)
+        self.assertQuerysetEqual(
+            qs,
+            [repr(self.organization), repr(self.affiliated_organization), repr(org), repr(sub_org),
+             repr(another_sub_org)],
+            ordered=False)
 
     def test_save_model(self):
         oa = OrganizationAdmin(Organization, self.site)
@@ -601,7 +609,8 @@ class TestOrganizationAdmin(TestCase):
         self.assertEqual(fields, oa_protected_readonly_fields + ('replaced_by',))
 
         fields = oa.get_readonly_fields(request, self.editable_organization)
-        self.assertEqual(fields, oa_readonly_fields + ('id', 'data_source', 'origin_id', 'internal_type', 'replaced_by'))
+        self.assertEqual(
+            fields, oa_readonly_fields + ('id', 'data_source', 'origin_id', 'internal_type', 'replaced_by'))
 
         clear_user_perm_cache(normal_admin)
         perm = Permission.objects.get(codename='replace_organization')

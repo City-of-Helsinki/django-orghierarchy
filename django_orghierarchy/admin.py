@@ -113,13 +113,15 @@ class AffiliatedOrganizationInline(SubOrganizationInline):
         return False
 
     def has_change_permission(self, request, obj=None):
-        if request.user.has_perm('django_orghierarchy.change__organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
+        if (request.user.has_perm('django_orghierarchy.change__organization')
+                or request.user.has_perm('django_orghierarchy.change_affiliated_organization')):
             return True
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
         # has_change_permission must be True to allow listing, even in read only
-        if request.user.has_perm('django_orghierarchy.delete__organization') or request.user.has_perm('django_orghierarchy.delete_affiliated_organization'):
+        if (request.user.has_perm('django_orghierarchy.delete__organization')
+                or request.user.has_perm('django_orghierarchy.delete_affiliated_organization')):
             return True
         return super().has_delete_permission(request, obj)
 
@@ -136,7 +138,8 @@ class AddAffiliatedOrganizationInline(AddSubOrganizationInline):
         self.fields += ('internal_type',)
 
     def has_add_permission(self, request):
-        if request.user.has_perm('django_orghierarchy.add__organization') or request.user.has_perm('django_orghierarchy.add_affiliated_organization'):
+        if (request.user.has_perm('django_orghierarchy.add__organization')
+                or request.user.has_perm('django_orghierarchy.add_affiliated_organization')):
             return True
         return super().has_add_permission(request)
 
@@ -150,7 +153,8 @@ class ProtectedAffiliatedOrganizationInline(ProtectedSubOrganizationInline):
 
     def has_change_permission(self, request, obj=None):
         # here obj refers to the *parent* organization, change permission to parent is needed
-        if request.user.has_perm('django_orghierarchy.change__organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
+        if (request.user.has_perm('django_orghierarchy.change__organization')
+                or request.user.has_perm('django_orghierarchy.change_affiliated_organization')):
             return True
         return super().has_change_permission(request, obj)
 
@@ -185,7 +189,10 @@ class OrganizationAdmin(DraggableMPTTAdmin):
         # queryset is already filtered, but write permissions have to be checked based on organization_type
         if obj and obj.internal_type == Organization.AFFILIATED:
             # full rights also cover affiliated organizations
-            has_write_access = request.user.has_perm('django_orghierarchy.change_organization') or request.user.has_perm('django_orghierarchy.change_affiliated_organization')
+            has_write_access = (
+                request.user.has_perm('django_orghierarchy.change_organization')
+                or request.user.has_perm('django_orghierarchy.change_affiliated_organization')
+            )
         else:
             has_write_access = request.user.has_perm('django_orghierarchy.change_organization')
         if obj and not has_write_access:

@@ -93,7 +93,7 @@ class Organization(MPTTModel, DataModel):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='modified_organizations',
         null=True, blank=True, editable=False)
     replaced_by = models.OneToOneField(
-        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='replaced_organization',
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replaced_organization',
         help_text=_('The organization that replaces this organization'))
 
     class Meta:

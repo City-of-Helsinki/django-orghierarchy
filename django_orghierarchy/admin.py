@@ -165,6 +165,7 @@ class OrganizationAdmin(DraggableMPTTAdmin):
     form = OrganizationForm
     inlines = [ProtectedSubOrganizationInline, SubOrganizationInline, AddSubOrganizationInline,
                ProtectedAffiliatedOrganizationInline, AffiliatedOrganizationInline, AddAffiliatedOrganizationInline]
+    search_fields = ('name', )
 
     # these fields may not be changed at all in existing organizations
     existing_readonly_fields = ('id', 'data_source', 'origin_id', 'internal_type')

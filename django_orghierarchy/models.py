@@ -103,6 +103,7 @@ class Organization(MPTTModel, DataModel):
             ('change_affiliated_organization', 'Can change affiliated organization'),
             ('delete_affiliated_organization', 'Can delete affiliated organization'),
             ('replace_organization', 'Can replace an organization with a new one'),
+            ('change_organization_regular_users', 'Can add/remove regular users to organizations'),
         )
 
     def __str__(self):

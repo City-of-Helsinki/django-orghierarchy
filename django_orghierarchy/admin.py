@@ -202,7 +202,10 @@ class OrganizationAdmin(DraggableMPTTAdmin):
             # affiliated organizations, this i  s to make sure user cannot edit
             # current organization if he does not have change permission on
             # organization
-            return self.form.base_fields
+            readonly_fields = self.form.base_fields.copy()
+            if request.user.has_perm('django_orghierarchy.change_organization_regular_users'):
+                del readonly_fields['regular_users']
+            return readonly_fields
         if obj and not obj.data_source.user_editable:
             # Organization data from protected data sources may not be edited
             if not request.user.has_perm('django_orghierarchy.replace_organization'):
@@ -241,7 +244,8 @@ class OrganizationAdmin(DraggableMPTTAdmin):
         )
 
     def has_change_permission(self, request, obj=None):
-        if request.user.has_perm('django_orghierarchy.change_affiliated_organization'):
+        if (request.user.has_perm('django_orghierarchy.change_affiliated_organization')
+                or request.user.has_perm('django_orghierarchy.change_organization_regular_users')):
             # allow changing affiliated organization means user can also
             # changing current organization (open change form)
             return True

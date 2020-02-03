@@ -554,6 +554,14 @@ class TestOrganizationAdmin(TestCase):
 
         has_perm = oa.has_change_permission(request)
         self.assertTrue(has_perm)
+        normal_admin.user_permissions.remove(perm)
+
+        clear_user_perm_cache(normal_admin)
+        perm = Permission.objects.get(codename='change_organization_regular_users')
+        normal_admin.user_permissions.add(perm)
+
+        has_perm = oa.has_change_permission(request)
+        self.assertTrue(has_perm)
 
     def test_get_actions(self):
         normal_admin = make_admin(username='normal_admin', is_superuser=False)
@@ -594,6 +602,24 @@ class TestOrganizationAdmin(TestCase):
 
         fields = oa.get_readonly_fields(request, self.editable_organization)
         self.assertEqual(fields, form_base_fields)
+
+        clear_user_perm_cache(normal_admin)
+        perm = Permission.objects.get(codename='change_organization_regular_users')
+        normal_admin.user_permissions.add(perm)
+
+        fields = oa.get_readonly_fields(request)
+        self.assertEqual(fields, oa_readonly_fields + ('replaced_by',))
+
+        fields = oa.get_readonly_fields(request, self.organization)
+        fields_minus_regular_users = list(tuple(form_base_fields))
+        fields_minus_regular_users.remove('regular_users')
+        self.assertEqual(list(tuple(fields)), fields_minus_regular_users)
+
+        fields = oa.get_readonly_fields(request, self.affiliated_organization)
+        self.assertEqual(list(tuple(fields)), fields_minus_regular_users)
+
+        fields = oa.get_readonly_fields(request, self.editable_organization)
+        self.assertEqual(list(tuple(fields)), fields_minus_regular_users)
 
         clear_user_perm_cache(normal_admin)
         perm = Permission.objects.get(codename='change_organization')

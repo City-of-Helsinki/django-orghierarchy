@@ -24,7 +24,7 @@ Each organization may have `admin_users` and `regular_users`, which are linked t
 
 Your desired user rights and permissions for each user group in each level of the organization depend on your application details, so you should implement your own user rights checks depending on your needs; an example implementation is in [Linkedevents](https://github.com/City-of-Helsinki/linkedevents).
 
-You may import an existing organization hierarchy from a REST API corresponding to the [6Aika Paatos decisionmaking API specification](https://github.com/6aika/api-paatos) with the included importer, for example:
+You may import an existing organization hierarchy from a REST API corresponding to the [6Aika Paatos decisionmaking API specification](https://github.com/6aika/api-paatos), based on the [Popolo project](http://www.popoloproject.com/) with the included importer, for example:
 
     python manage.py import_organizations "https://api.hel.fi/paatos/v1/organization/"
     

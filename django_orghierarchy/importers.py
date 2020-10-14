@@ -58,6 +58,8 @@ class RestAPIImporter:
                 and lowercased; if the data type is 'link', it will return the data fetched
                 from the link; if the data type is 'regex', it will return the value extracted
                 from the given pattern.
+            - optional: Whether the importer will continue if the field is missing.
+                Defaults to False.
         - rename_data_source: Data sources that are renamed during import.
         - default_data_source: Data source id to use for objects without data source.
 
@@ -238,17 +240,28 @@ class RestAPIImporter:
 
             for field in self.update_fields:
                 config = self.field_config.get(field) or {}
-                value = self._get_field_value(data, field, config)
+                try:
+                    value = self._get_field_value(incoming_data, field, config)
+                except DataImportError as exception:
+                    if config.get('optional'):
+                        continue
+                    else:
+                        raise exception
                 setattr(organization, field, value)
             organization.save()
 
             return organization
         except Organization.DoesNotExist:
-            object_data = {}
+            object_data = {'origin_id': origin_id, 'data_source': data_source}
             for field in self.fields:
                 config = self.field_config.get(field) or {}
-                object_data[field] = self._get_field_value(data, field, config)
-
+                try:
+                    object_data[field] = self._get_field_value(incoming_data, field, config)
+                except DataImportError as exception:
+                    if config.get('optional'):
+                        continue
+                    else:
+                        raise exception
             organization = Organization.objects.create(**object_data)
             return organization
 

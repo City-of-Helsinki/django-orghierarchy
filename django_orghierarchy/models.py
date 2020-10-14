@@ -111,35 +111,6 @@ class Organization(MPTTModel, DataModel):
             return self.name + ' (dissolved)'
         return self.name
 
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        # before moving again, the instance must be refreshed from db as it has been moved!
-        # https://github.com/django-mptt/django-mptt/issues/257 and
-        # https://github.com/django-mptt/django-mptt/issues/279
-        new_self = self.__class__.objects.get(pk=self.pk)
-        if new_self.parent:
-            # move affiliated organization as the first child of parent
-            # organization as they need appear before normal child
-            # organization when shown in list. We also need to account
-            # for the case that an affiliated organization can be changed
-            # to a normal organization, thus move normal organization to
-            # the last child of parent organization.
-            move_positions = {
-                self.AFFILIATED: 'first-child',
-                self.NORMAL: 'last-child',
-            }
-            position = move_positions[self.internal_type]
-
-            # Only perform move_to if this organization is not already in the correct place
-            # otherwise it would result in an infinite loop.
-            if (
-                (position == 'first-child' and self.get_previous_sibling() is not None)
-                or (position == 'last-child' and self.get_next_sibling() is not None)
-            ):
-                # we must not call move with original self, its fields were outdated by save
-                new_self.move_to(new_self.parent, position)
 
     @property
     def sub_organizations(self):

@@ -114,6 +114,7 @@ class RestAPIImporter:
         self.url = url
 
         self.config = copy.deepcopy(self.default_config)
+        config = copy.deepcopy(config)
         if config:
             field_config = config.pop('field_config', None)
             if field_config:
@@ -223,15 +224,37 @@ class RestAPIImporter:
         The organization import is transactional so, for example, we do not
         accidentally save organization without parent if the parent organization
         saving failed for some reason.
-        """
-        if not isinstance(data, dict):
-            raise DataImportError('Organization data must contain all required fields')
 
+        If a single value is provided to organization field, we assume it's
+        the id of the organization. This requires that all fields apart from id
+        must be marked *not* required in the config.
+        """
+        # id must always be present
         config = self.field_config.get('origin_id') or {}
-        origin_id = self._get_field_value(data, 'origin_id', config)
-        data_source = self._get_field_value(data, 'data_source', config)
+        if isinstance(data, dict):
+            incoming_data = data
+        elif isinstance(data, str):
+            # we are only referring to id. The organization might already exist, or it is imported later.
+            incoming_data = {config['source_field']: data} if config.get('source_field') else {'origin_id': data}
+        else:
+            raise DataImportError('Organization data must be dict or an organization id.')
+        origin_id = self._get_field_value(incoming_data, 'origin_id', config)
+
+        # data source may be missing altogether, or it may be optional
+        data_source = None
+        config = self.field_config.get('data_source') or {}
+        try:
+            data_source = self._get_field_value(incoming_data, 'data_source', config)
+        except DataImportError as exception:
+            if not config or config.get('optional'):
+                pass
+            else:
+                raise exception
         if not data_source:
-            data_source = self._get_field_value(self.default_data_source, 'data_source', config)
+            data_source = self._get_field_value(
+                {'data_source': self.default_data_source}, 'data_source', {'data_type': 'value'})
+
+        # id is never imported in default config
 
         try:
             # enforce lower case id standard, but recognize upper case ids as equal:

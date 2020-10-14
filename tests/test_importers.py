@@ -67,6 +67,35 @@ organizations = {
     '333': organization_3,
 }
 
+tprek_organization_1 = {
+    'id': '111',
+    'parent_id': '222',
+    'organization_type': 'TEST_TYPE_1',
+    'name_fi': 'Organization-1',
+    'ignored_field': 'This field will be ignored',
+}
+
+tprek_organization_2 = {
+    'id': '222',
+    'organization_type': 'TEST_TYPE_1',
+    'name_fi': 'Organization-2',
+    'ignored_field': 'This field will be ignored',
+}
+
+tprek_organization_3 = {
+    'id': '333',
+    'parent_id': '111',
+    'organization_type': 'TEST_TYPE_2',
+    'name_fi': 'Organization-3',
+    'ignored_field': 'This field will be ignored',
+}
+
+tprek_organizations = [
+    tprek_organization_1,
+    tprek_organization_2,
+    tprek_organization_3,
+]
+
 
 def mock_request_get(url):
     m = re.search(r'http://fake.url/organizations/(\d+)/', url)
@@ -87,6 +116,14 @@ def mock_request_get(url):
                 'next': None,
                 'results': [organization_3]
             })
+
+    return MockResponse({}, status_code=404)
+
+
+def mock_tprek_request_get(url):
+    m = re.search(r'http://fake.tprek.url/department/', url)
+    if m:
+        return MockResponse(tprek_organizations)
 
     return MockResponse({}, status_code=404)
 
@@ -364,3 +401,123 @@ class TestRestApiImporter(TestCase):
         url = 'http://fake.url/organizations/111/'
         data = self.importer._get_link_data(url)
         self.assertEqual(data, organization_1)
+
+
+class TestTprekRestApiImporter(TestRestApiImporter):
+    # here we test all the features of the TPREK import that are different from default REST import
+
+    def setUp(self):
+        self.config = {
+            'next_key': None,
+            'results_key': None,
+            'fields': [
+                'origin_id', 'classification',
+                'name', 'parent',
+            ],
+            'update_fields': [
+                'classification', 'name', 'parent',
+            ],
+            'field_config': {
+                'parent': {
+                    'source_field': 'parent_id',
+                    'data_type': 'value',
+                    'optional': True,
+                },
+                'origin_id': {
+                    'source_field': 'id',
+                    'data_type': 'value',
+                },
+                'classification': {
+                    'source_field': 'organization_type',
+                    'optional': True,
+                },
+                'name': {
+                    'source_field': 'name_fi',
+                    'optional': True,
+                }
+            },
+            'default_data_source': 'tprek'
+        }
+        self.importer = RestAPIImporter('http://fake.tprek.url/department/', self.config)
+
+    @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
+    def test_get_field_value_related_fields(self):
+        value = self.importer._get_field_value({'data_source': 'tprek'}, 'data_source', {})
+        self.assertEqual(value.id, 'tprek')
+
+        value = self.importer._get_field_value(tprek_organization_1, 'classification',
+                                               self.config['field_config']['classification'])
+        self.assertEqual(value.id, 'tprek:TEST_TYPE_1')
+
+        value = self.importer._get_field_value(tprek_organization_1, 'parent',
+                                               self.config['field_config']['parent'])
+        self.assertEqual(value.id, 'tprek:222')
+
+    @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
+    def test_data_iter(self):
+        url = 'http://fake.tprek.url/department/'
+        iterator = self.importer._data_iter(url)
+        iter_len = len(list(iterator))
+        self.assertEqual(iter_len, 3)
+
+        url = 'http://not-exist.url/organizations/'
+        self.assertRaises(DataImportError, list, self.importer._data_iter(url))
+
+    @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
+    def test_import_data(self):
+        self.importer.import_data()
+        data_source_model = get_data_source_model()
+        self.assertEqual(Organization.objects.count(), 3)
+        self.assertEqual(data_source_model.objects.count(), 1)
+        self.assertEqual(OrganizationClass.objects.count(), 2)
+
+    def test_import_organization_class_with_simple_string(self):
+        organization_class = self.importer._import_organization_class('class-with-no-source')
+        qs = OrganizationClass.objects.all()
+        self.assertQuerysetEqual(qs, [repr(organization_class)])
+        self.assertEqual(organization_class.id, 'tprek:class-with-no-source')
+
+    def test_import_organization_class_with_dict_data(self):
+        pass
+
+    def test_import_organization_class_with_simple_dict_data(self):
+        pass
+
+    def test_import_organization_update_existing(self):
+        organization = OrganizationFactory(
+            name='existing-organization',
+            origin_id=tprek_organization_2['id'],
+            data_source=self.importer._import_data_source('tprek'),
+        )
+        self.importer._import_organization(tprek_organization_2)
+        organization.refresh_from_db()
+
+        self.assertQuerysetEqual(Organization.objects.all(), [repr(organization)])
+        self.assertEqual(organization.name, 'Organization-2')
+
+    @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
+    def test_import_organization_with_parent(self):
+        organization = self.importer._import_organization(tprek_organization_1)
+        qs = Organization.objects.all()
+        # also created parent organization, but the name is empty at the moment
+        self.assertQuerysetEqual(qs, [repr(organization.parent), repr(organization)], ordered=False)
+        self.assertEqual(organization.name, 'Organization-1')
+        self.assertNotEqual(organization.id, 111)
+        self.assertEqual(organization.parent.name, '')
+        self.assertNotEqual(organization.parent_id, 222)
+
+    @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
+    def test_import_organization_without_parent(self):
+        organization = self.importer._import_organization(tprek_organization_2)
+        qs = Organization.objects.all()
+        self.assertQuerysetEqual(qs, [repr(organization)])
+        self.assertEqual(organization.name, 'Organization-2')
+        self.assertNotEqual(organization.id, 222)
+
+    def test_import_organization_with_string(self):
+        organization = self.importer._import_organization('test-value')
+        qs = Organization.objects.all()
+        # created empty organization with only the id
+        self.assertQuerysetEqual(qs, [repr(organization)])
+        self.assertEqual(organization.name, '')
+        self.assertNotEqual(organization.id, 'test-value')

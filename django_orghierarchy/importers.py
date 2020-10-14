@@ -165,22 +165,27 @@ class RestAPIImporter:
         The method will first try to get the organization class from cache, and
         then get from database if not cached.
         """
+        # organization class supports id, data_source, origin_id and name.
+        supported_fields = {'id', 'origin_id', 'data_source', 'name'}
         identifier = data.get('id')
         # organization class requires data source and origin_id.
-        # try to construct them from the id or die trying:
-        if ('data_source' not in data or 'origin_id' not in data) and\
-                type(identifier) is str and ':' in identifier:
-            data['data_source'] = identifier.split(':')[0]
-            data['origin_id'] = identifier.split(':')[1]
+        if isinstance(identifier, str) and ':' in identifier:
+            if 'data_source' not in data:
+                data['data_source'] = identifier.split(':')[0]
+            if 'origin_id' not in data:
+                data['origin_id'] = identifier.split(':')[1]
         # provided id used if origin id missing
         if 'origin_id' not in data or not data['origin_id']:
             data['origin_id'] = identifier
         # default data source used if missing
         if 'data_source' not in data or not data['data_source']:
             data['data_source'] = self.default_data_source
+        # reformat id to fit our model
+        if not isinstance(identifier, str) or ':' not in identifier:
+            data['id'] = data['data_source'] + ':' + str(identifier)
         data['data_source'] = self.related_import_methods['data_source'](data['data_source'])
         # extra fields should not crash the import. Only use specified fields.
-        data = {field: value for (field, value) in data.items() if field in self.fields}
+        data = {field: value for (field, value) in data.items() if field in supported_fields}
         if identifier not in self._organization_classes:
             organization_class, _ = OrganizationClass.objects.get_or_create(**data)
             self._organization_classes[identifier] = organization_class

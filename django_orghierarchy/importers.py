@@ -42,8 +42,9 @@ class RestAPIImporter:
     the importer parsing different REST API structures.
 
     Config options:
-        - next_key: The url to the next page if the source data is paginated.
-        - results_key: The object key to the list of organization objects.
+        - next_key: The url to the next page if the source data is paginated, or None if not.
+        - results_key: The object key to the list of organization objects, or None if the list is at
+            root level.
         - fields: The fields of which the values will be imported. The same fields will be imported
             in organization classes, if present.
         - update_fields: The fields to update if the organization with same origin_id and data
@@ -289,7 +290,7 @@ class RestAPIImporter:
             raise DataImportError(e)
 
         data = r.json()
-        for data_item in data[self.results_key]:
+        for data_item in data[self.results_key] if self.results_key else data:
             yield data_item
 
         logger.info('Importing data from {0} completed'.format(url))

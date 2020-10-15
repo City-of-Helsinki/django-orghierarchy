@@ -44,14 +44,14 @@ class TestSubOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.normal_admin
 
-        has_perm = sub_org_inline.has_add_permission(request)
+        has_perm = sub_org_inline.has_add_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
         clear_user_perm_cache(self.normal_admin)
         perm = Permission.objects.get(codename='add_organization')
         self.normal_admin.user_permissions.add(perm)
 
-        has_perm = sub_org_inline.has_add_permission(request)
+        has_perm = sub_org_inline.has_add_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
     def test_has_change_permission(self):
@@ -118,14 +118,14 @@ class TestAddSubOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.normal_admin
 
-        has_perm = sub_org_inline.has_add_permission(request)
+        has_perm = sub_org_inline.has_add_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
         clear_user_perm_cache(self.normal_admin)
         perm = Permission.objects.get(codename='add_organization')
         self.normal_admin.user_permissions.add(perm)
 
-        has_perm = sub_org_inline.has_add_permission(request)
+        has_perm = sub_org_inline.has_add_permission(request, self.editable_org)
         self.assertTrue(has_perm)
 
     def test_has_change_permission(self):
@@ -192,7 +192,7 @@ class TestProtectedSubOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        has_perm = sub_org_inline.has_add_permission(request)
+        has_perm = sub_org_inline.has_add_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
     def test_has_change_permission(self):
@@ -246,14 +246,14 @@ class TestAffiliatedOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.normal_admin
 
-        has_perm = aff_org_inline.has_add_permission(request)
+        has_perm = aff_org_inline.has_add_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
         clear_user_perm_cache(self.normal_admin)
         perm = Permission.objects.get(codename='add_affiliated_organization')
         self.normal_admin.user_permissions.add(perm)
 
-        has_perm = aff_org_inline.has_add_permission(request)
+        has_perm = aff_org_inline.has_add_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
     def test_has_change_permission(self):
@@ -320,14 +320,14 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.normal_admin
 
-        has_perm = sub_org_inline.has_add_permission(request)
+        has_perm = sub_org_inline.has_add_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
         clear_user_perm_cache(self.normal_admin)
         perm = Permission.objects.get(codename='add_affiliated_organization')
         self.normal_admin.user_permissions.add(perm)
 
-        has_perm = sub_org_inline.has_add_permission(request)
+        has_perm = sub_org_inline.has_add_permission(request, self.editable_org)
         self.assertTrue(has_perm)
 
     def test_has_change_permission(self):
@@ -335,7 +335,7 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.normal_admin
 
-        has_perm = sub_org_inline.has_change_permission(request)
+        has_perm = sub_org_inline.has_change_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
         clear_user_perm_cache(self.normal_admin)
@@ -395,7 +395,7 @@ class TestProtectedAffiliatedOrganizationInline(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        has_perm = aff_org_inline.has_add_permission(request)
+        has_perm = aff_org_inline.has_add_permission(request, self.editable_org)
         self.assertFalse(has_perm)
 
     def test_has_change_permission(self):

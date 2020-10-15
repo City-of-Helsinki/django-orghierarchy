@@ -1,6 +1,6 @@
 import swapper
 from django.conf import settings
-from django.db import models, transaction
+from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
@@ -110,7 +110,6 @@ class Organization(MPTTModel, DataModel):
         if self.dissolution_date:
             return self.name + ' (dissolved)'
         return self.name
-
 
     @property
     def sub_organizations(self):

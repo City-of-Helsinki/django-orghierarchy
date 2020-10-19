@@ -150,9 +150,16 @@ class RestAPIImporter:
         self.config = copy.deepcopy(self.default_config)
         config = copy.deepcopy(config)
         if config:
-            # override default config only for the keys that are present. Also field config
-            # will be completely overridden if present, otherwise we would have a conflicting
-            # mix of different fields from different configs.
+            # only consider fields listed in given config when merging field configs
+            default_field_config = self.config.pop('field_config')
+            given_field_config = config.pop('field_config')
+            merged_field_config = {}
+            for field in config.get('fields', None):
+                if field in given_field_config:
+                    merged_field_config[field] = given_field_config[field]
+                elif field in default_field_config:
+                    merged_field_config[field] = default_field_config[field]
+            self.config['field_config'] = merged_field_config
             self.config.update(config)
         logger.info('Importing organization data from %s with the following config:' % self.url)
         logger.info(self.config)

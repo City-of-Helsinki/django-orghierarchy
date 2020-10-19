@@ -137,7 +137,7 @@ class TestRestApiImporter(TestCase):
         config = {
             'next_key': 'next_page',
             'results_key': 'items',
-            'fields': ['classification', 'name', 'parent'],
+            'fields': ['classification', 'origin_id', 'name', 'parent'],
             'field_config': {
                 'classification': {
                     'data_type': 'link',

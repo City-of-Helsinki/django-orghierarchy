@@ -1,3 +1,5 @@
+import copy
+
 from django.core.management.base import BaseCommand, CommandError
 
 from django_orghierarchy.importers import DataImportError, RestAPIImporter
@@ -46,7 +48,7 @@ class Command(BaseCommand):
 
         config = {}
         if options['config']:
-            config = getattr(RestAPIImporter, '%s_config' % options['config'])
+            config = copy.deepcopy(getattr(RestAPIImporter, '%s_config' % options['config']))
         if options['rename_data_source']:
             rename_data_source = {}
             for item in options['rename_data_source']:

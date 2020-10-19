@@ -22,6 +22,15 @@ class Command(BaseCommand):
             help='Rename data sources. Renaming should be specified as <old_identifier>:<new_identifier>'
         )
 
+        parser.add_argument(
+            '-c',
+            '--config',
+            dest='config',
+            default='paatos',
+            choices=['paatos', 'tprek'],
+            help='REST API configuration to use when importing.'
+        )
+
     def _parse_rename_data_source(self, value):
         try:
             old_name, new_name = value.split(':')
@@ -36,6 +45,8 @@ class Command(BaseCommand):
         url = options['url']
 
         config = {}
+        if options['config']:
+            config = getattr(RestAPIImporter, '%s_config' % options['config'])
         if options['rename_data_source']:
             rename_data_source = {}
             for item in options['rename_data_source']:

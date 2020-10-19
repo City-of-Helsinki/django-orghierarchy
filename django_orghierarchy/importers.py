@@ -87,7 +87,7 @@ class RestAPIImporter:
         }
     """
 
-    default_config = {
+    paatos_config = {
         'next_key': 'next',
         'results_key': 'results',
         'fields': [
@@ -110,17 +110,52 @@ class RestAPIImporter:
         'default_data_source': 'OpenDecisionAPI'
     }
 
+    tprek_config = {
+        'next_key': None,
+        'results_key': None,
+        'fields': [
+            'origin_id', 'classification',
+            'name', 'parent',
+        ],
+        'update_fields': [
+            'classification', 'name', 'parent',
+        ],
+        'field_config': {
+            'parent': {
+                'source_field': 'parent_id',
+                'data_type': 'value',
+                'optional': True,
+            },
+            'origin_id': {
+                'source_field': 'id',
+                'data_type': 'value',
+            },
+            'classification': {
+                'source_field': 'organization_type',
+                'optional': True,
+            },
+            'name': {
+                'source_field': 'name_fi',
+                'optional': True,
+            }
+        },
+        'default_data_source': 'tprek'
+    }
+
+    default_config = paatos_config
+
     def __init__(self, url, config=None):
         self.url = url
 
         self.config = copy.deepcopy(self.default_config)
         config = copy.deepcopy(config)
         if config:
-            field_config = config.pop('field_config', None)
-            if field_config:
-                self.config['field_config'].update(field_config)
+            # override default config only for the keys that are present. Also field config
+            # will be completely overridden if present, otherwise we would have a conflicting
+            # mix of different fields from different configs.
             self.config.update(config)
-
+        logger.info('Importing organization data from %s with the following config:' % self.url)
+        logger.info(self.config)
         self.related_import_methods = {
             'data_source': self._import_data_source,
             'classification': self._import_organization_class,

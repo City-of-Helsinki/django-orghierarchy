@@ -42,8 +42,9 @@ class RestAPIImporter:
     the importer parsing different REST API structures.
 
     Config options:
-        - next_key: The url to the next page if the source data is paginated.
-        - results_key: The object key to the list of organization objects.
+        - next_key: The url to the next page if the source data is paginated, or None if not.
+        - results_key: The object key to the list of organization objects, or None if the list is at
+            root level.
         - fields: The fields of which the values will be imported. The same fields will be imported
             in organization classes, if present.
         - update_fields: The fields to update if the organization with same origin_id and data
@@ -57,6 +58,8 @@ class RestAPIImporter:
                 and lowercased; if the data type is 'link', it will return the data fetched
                 from the link; if the data type is 'regex', it will return the value extracted
                 from the given pattern.
+            - optional: Whether the importer will continue if the field is missing.
+                Defaults to False.
         - rename_data_source: Data sources that are renamed during import.
         - default_data_source: Data source id to use for objects without data source.
 
@@ -111,6 +114,7 @@ class RestAPIImporter:
         self.url = url
 
         self.config = copy.deepcopy(self.default_config)
+        config = copy.deepcopy(config)
         if config:
             field_config = config.pop('field_config', None)
             if field_config:
@@ -164,22 +168,27 @@ class RestAPIImporter:
         The method will first try to get the organization class from cache, and
         then get from database if not cached.
         """
+        # organization class supports id, data_source, origin_id and name.
+        supported_fields = {'id', 'origin_id', 'data_source', 'name'}
         identifier = data.get('id')
         # organization class requires data source and origin_id.
-        # try to construct them from the id or die trying:
-        if ('data_source' not in data or 'origin_id' not in data) and\
-                type(identifier) is str and ':' in identifier:
-            data['data_source'] = identifier.split(':')[0]
-            data['origin_id'] = identifier.split(':')[1]
+        if isinstance(identifier, str) and ':' in identifier:
+            if 'data_source' not in data:
+                data['data_source'] = identifier.split(':')[0]
+            if 'origin_id' not in data:
+                data['origin_id'] = identifier.split(':')[1]
         # provided id used if origin id missing
         if 'origin_id' not in data or not data['origin_id']:
             data['origin_id'] = identifier
         # default data source used if missing
         if 'data_source' not in data or not data['data_source']:
             data['data_source'] = self.default_data_source
+        # reformat id to fit our model
+        if not isinstance(identifier, str) or ':' not in identifier:
+            data['id'] = data['data_source'] + ':' + str(identifier)
         data['data_source'] = self.related_import_methods['data_source'](data['data_source'])
         # extra fields should not crash the import. Only use specified fields.
-        data = {field: value for (field, value) in data.items() if field in self.fields}
+        data = {field: value for (field, value) in data.items() if field in supported_fields}
         if identifier not in self._organization_classes:
             organization_class, _ = OrganizationClass.objects.get_or_create(**data)
             self._organization_classes[identifier] = organization_class
@@ -215,15 +224,37 @@ class RestAPIImporter:
         The organization import is transactional so, for example, we do not
         accidentally save organization without parent if the parent organization
         saving failed for some reason.
-        """
-        if not isinstance(data, dict):
-            raise DataImportError('Organization data must contain all required fields')
 
+        If a single value is provided to organization field, we assume it's
+        the id of the organization. This requires that all fields apart from id
+        must be marked *not* required in the config.
+        """
+        # id must always be present
         config = self.field_config.get('origin_id') or {}
-        origin_id = self._get_field_value(data, 'origin_id', config)
-        data_source = self._get_field_value(data, 'data_source', config)
+        if isinstance(data, dict):
+            incoming_data = data
+        elif isinstance(data, str):
+            # we are only referring to id. The organization might already exist, or it is imported later.
+            incoming_data = {config['source_field']: data} if config.get('source_field') else {'origin_id': data}
+        else:
+            raise DataImportError('Organization data must be dict or an organization id.')
+        origin_id = self._get_field_value(incoming_data, 'origin_id', config)
+
+        # data source may be missing altogether, or it may be optional
+        data_source = None
+        config = self.field_config.get('data_source') or {}
+        try:
+            data_source = self._get_field_value(incoming_data, 'data_source', config)
+        except DataImportError as exception:
+            if not config or config.get('optional'):
+                pass
+            else:
+                raise exception
         if not data_source:
-            data_source = self._get_field_value(self.default_data_source, 'data_source', config)
+            data_source = self._get_field_value(
+                {'data_source': self.default_data_source}, 'data_source', {'data_type': 'value'})
+
+        # id is never imported in default config
 
         try:
             # enforce lower case id standard, but recognize upper case ids as equal:
@@ -232,17 +263,28 @@ class RestAPIImporter:
 
             for field in self.update_fields:
                 config = self.field_config.get(field) or {}
-                value = self._get_field_value(data, field, config)
+                try:
+                    value = self._get_field_value(incoming_data, field, config)
+                except DataImportError as exception:
+                    if config.get('optional'):
+                        continue
+                    else:
+                        raise exception
                 setattr(organization, field, value)
             organization.save()
 
             return organization
         except Organization.DoesNotExist:
-            object_data = {}
+            object_data = {'origin_id': origin_id, 'data_source': data_source}
             for field in self.fields:
                 config = self.field_config.get(field) or {}
-                object_data[field] = self._get_field_value(data, field, config)
-
+                try:
+                    object_data[field] = self._get_field_value(incoming_data, field, config)
+                except DataImportError as exception:
+                    if config.get('optional'):
+                        continue
+                    else:
+                        raise exception
             organization = Organization.objects.create(**object_data)
             return organization
 
@@ -289,7 +331,7 @@ class RestAPIImporter:
             raise DataImportError(e)
 
         data = r.json()
-        for data_item in data[self.results_key]:
+        for data_item in data[self.results_key] if self.results_key else data:
             yield data_item
 
         logger.info('Importing data from {0} completed'.format(url))

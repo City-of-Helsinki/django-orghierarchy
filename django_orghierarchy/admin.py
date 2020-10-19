@@ -39,7 +39,7 @@ class SubOrganizationInline(admin.TabularInline):
         queryset = super().get_queryset(request)
         return queryset.filter(internal_type=self.organization_type, data_source__user_editable=True)
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def get_readonly_fields(self, request, obj=None):
@@ -90,7 +90,7 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
         queryset = super().get_queryset(request)
         return queryset.filter(internal_type=self.organization_type, data_source__user_editable=False)
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
@@ -109,7 +109,7 @@ class AffiliatedOrganizationInline(SubOrganizationInline):
     form = AffiliatedOrganizationForm
     organization_type = Organization.AFFILIATED
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_change_permission(self, request, obj=None):
@@ -137,11 +137,11 @@ class AddAffiliatedOrganizationInline(AddSubOrganizationInline):
         super().__init__(*args, **kwargs)
         self.fields += ('internal_type',)
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         if (request.user.has_perm('django_orghierarchy.add__organization')
                 or request.user.has_perm('django_orghierarchy.add_affiliated_organization')):
             return True
-        return super().has_add_permission(request)
+        return super().has_add_permission(request, obj)
 
 
 class ProtectedAffiliatedOrganizationInline(ProtectedSubOrganizationInline):

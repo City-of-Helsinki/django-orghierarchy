@@ -1,10 +1,10 @@
 -r requirements.txt
 
-flake8==3.4.1
+flake8==3.8.4
 
 # unit tests & coverage report
-coverage==4.4.1
-factory-boy==2.9.2
-pytest==3.2.3
-pytest-cov==2.5.1
-pytest-django==3.1.2
+coverage==5.3
+factory-boy==3.1.0
+pytest==6.1.1
+pytest-cov==2.10.1
+pytest-django==3.10.0

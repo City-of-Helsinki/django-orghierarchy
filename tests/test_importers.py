@@ -436,9 +436,27 @@ class TestTprekRestApiImporter(TestRestApiImporter):
                     'optional': True,
                 }
             },
-            'default_data_source': 'tprek'
+            'default_data_source': 'tprek',
+            'default_parent_organization': 'Pääkaupunkiseudun toimipisterekisteri'
         }
         self.importer = RestAPIImporter('http://fake.tprek.url/department/', self.config)
+
+    def test_get_data_source(self):
+        data = {'id': 'tprek'}
+        data_source = self.importer._get_data_source(data)
+        self.assertEqual(data_source.id, 'tprek')
+        data_source_model = get_data_source_model()
+        self.assertEqual(data_source_model.objects.count(), 1)
+
+        self.importer._get_data_source(data)
+        self.assertEqual(data_source_model.objects.count(), 1)  # fetched from cached
+
+        self.importer.config['rename_data_source'] = {
+            'tprek': 'new-source-name'
+        }
+        data_source = self.importer._get_data_source(data)
+        self.assertEqual(data_source.id, 'new-source-name')
+        self.assertEqual(data_source_model.objects.count(), 2)
 
     @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
     def test_get_field_value_related_fields(self):
@@ -467,7 +485,7 @@ class TestTprekRestApiImporter(TestRestApiImporter):
     def test_import_data(self):
         self.importer.import_data()
         data_source_model = get_data_source_model()
-        self.assertEqual(Organization.objects.count(), 3)
+        self.assertEqual(Organization.objects.count(), 4)
         self.assertEqual(data_source_model.objects.count(), 1)
         self.assertEqual(OrganizationClass.objects.count(), 2)
 
@@ -483,6 +501,12 @@ class TestTprekRestApiImporter(TestRestApiImporter):
     def test_import_organization_class_with_simple_dict_data(self):
         pass
 
+    def test_import_data_source_with_string(self):
+        pass
+
+    def test_import_data_source_with_dict_data(self):
+        pass
+
     def test_import_organization_update_existing(self):
         organization = OrganizationFactory(
             name='existing-organization',
@@ -491,33 +515,47 @@ class TestTprekRestApiImporter(TestRestApiImporter):
         )
         self.importer._import_organization(tprek_organization_2)
         organization.refresh_from_db()
+        default_parent = Organization.objects.get(id='tprek:tprek')
 
-        self.assertQuerysetEqual(Organization.objects.all(), [repr(organization)])
+        self.assertQuerysetEqual(Organization.objects.all(), [repr(default_parent), repr(organization)], ordered=False)
         self.assertEqual(organization.name, 'Organization-2')
 
     @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
     def test_import_organization_with_parent(self):
         organization = self.importer._import_organization(tprek_organization_1)
         qs = Organization.objects.all()
-        # also created parent organization, but the name is empty at the moment
-        self.assertQuerysetEqual(qs, [repr(organization.parent), repr(organization)], ordered=False)
+        default_parent = Organization.objects.get(id='tprek:tprek')
+
+        # also created parent organization, but the name is empty at the moment.
+        # parent will have the default parent organization
+        self.assertQuerysetEqual(qs, [repr(default_parent), repr(organization.parent), repr(organization)], ordered=False)
         self.assertEqual(organization.name, 'Organization-1')
-        self.assertNotEqual(organization.id, 111)
+        self.assertEqual(organization.id, 'tprek:111')
         self.assertEqual(organization.parent.name, '')
-        self.assertNotEqual(organization.parent_id, 222)
+        self.assertEqual(organization.parent_id, 'tprek:222')
+        self.assertEqual(organization.parent.parent.name, 'Pääkaupunkiseudun toimipisterekisteri')
+        self.assertEqual(organization.parent.parent_id, 'tprek:tprek')
 
     @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
     def test_import_organization_without_parent(self):
         organization = self.importer._import_organization(tprek_organization_2)
         qs = Organization.objects.all()
-        self.assertQuerysetEqual(qs, [repr(organization)])
+        default_parent = Organization.objects.get(id='tprek:tprek')
+        self.assertQuerysetEqual(qs, [repr(default_parent), repr(organization)], ordered=False)
         self.assertEqual(organization.name, 'Organization-2')
-        self.assertNotEqual(organization.id, 222)
+        self.assertEqual(organization.id, 'tprek:222')
+        # organization will have the default parent organization
+        self.assertEqual(organization.parent.name, 'Pääkaupunkiseudun toimipisterekisteri')
+        self.assertEqual(organization.parent_id, 'tprek:tprek')
 
     def test_import_organization_with_string(self):
         organization = self.importer._import_organization('test-value')
         qs = Organization.objects.all()
+        default_parent = Organization.objects.get(id='tprek:tprek')
         # created empty organization with only the id
-        self.assertQuerysetEqual(qs, [repr(organization)])
+        self.assertQuerysetEqual(qs, [repr(default_parent), repr(organization)])
         self.assertEqual(organization.name, '')
-        self.assertNotEqual(organization.id, 'test-value')
+        self.assertEqual(organization.id, 'tprek:test-value')
+        # organization will have the default parent organization
+        self.assertEqual(organization.parent.name, 'Pääkaupunkiseudun toimipisterekisteri')
+        self.assertEqual(organization.parent_id, 'tprek:tprek')

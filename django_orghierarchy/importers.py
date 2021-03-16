@@ -38,6 +38,11 @@ class RestAPIImporter:
     full object data should be provided to parent field so that the importer can create
     parent organization before creating child organization.
 
+    For use in multi-source setups, the importer may optionally create a parent organization
+    for the data source that is the common parent of all imported top-level organizations.
+    This way, separate organization hierarchies from different data sources may be stored
+    in the same application.
+
     The client code can override the default config or pass in a config object to allow
     the importer parsing different REST API structures.
 
@@ -62,6 +67,8 @@ class RestAPIImporter:
                 Defaults to False.
         - rename_data_source: Data sources that are renamed during import.
         - default_data_source: Data source id to use for objects without data source.
+        - default_parent_organization: If set, name of the parent organization to be created for all
+            imported top level organizations.
 
     Example config:
         {
@@ -83,7 +90,8 @@ class RestAPIImporter:
                 'original_name_1': 'new_name_1',
                 'original_name_2': 'new_name_2',
             },
-            'default_data_source': 'new_name_1'
+            'default_data_source': 'new_name_1',
+            'default_parent_organization': None
         }
     """
 
@@ -139,7 +147,8 @@ class RestAPIImporter:
                 'optional': True,
             }
         },
-        'default_data_source': 'tprek'
+        'default_data_source': 'tprek',
+        'default_parent_organization': 'Pääkaupunkiseudun toimipisterekisteri'
     }
 
     default_config = paatos_config
@@ -171,6 +180,20 @@ class RestAPIImporter:
 
         self._organization_classes = {}
         self._data_sources = {}
+        self._default_parent = None
+        if self.config.get('default_parent_organization', None):
+            origin_id_config = self.config['field_config'].get('origin_id', None)
+            origin_id_field = origin_id_config['source_field'] if origin_id_config else 'origin_id'
+            data_source_config = self.config['field_config'].get('data_source', None)
+            data_source_field = data_source_config['source_field'] if data_source_config else 'data_source'
+            name_config = self.config['field_config'].get('name', None)
+            name_field = name_config['source_field'] if name_config else 'name'
+            default_parent_data = {
+                origin_id_field: self.config['default_data_source'],
+                data_source_field: self.config['default_data_source'],
+                name_field: self.config['default_parent_organization']
+            }
+            self._default_parent = self._import_organization(default_parent_data)
 
     @property
     def fields(self):
@@ -313,6 +336,12 @@ class RestAPIImporter:
                     else:
                         raise exception
                 setattr(organization, field, value)
+            if (
+                self.config.get('default_parent_organization', None)
+                and not organization.parent
+                and organization != self._default_parent
+            ):
+                organization.parent = self._default_parent
             organization.save()
 
             return organization
@@ -328,6 +357,13 @@ class RestAPIImporter:
                     else:
                         raise exception
             organization = Organization.objects.create(**object_data)
+            if (
+                self.config.get('default_parent_organization', None)
+                and not organization.parent
+                and organization != self._default_parent
+            ):
+                organization.parent = self._default_parent
+                organization.save()
             return organization
 
     def _import_data_source(self, data):

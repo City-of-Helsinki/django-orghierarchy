@@ -31,7 +31,7 @@ class OrganizationForm(forms.ModelForm):
 
         if 'data_source' in self.fields:
             # Only allow selecting data source within editable sources
-            self.fields['data_source'].queryset = get_data_source_model().objects.filter(user_editable=True)
+            self.fields['data_source'].queryset = get_data_source_model().objects.filter(user_editable_organizations=True)
 
         if 'parent' in self.fields and self.instance.id:
             # prevent recursive reference
@@ -70,7 +70,7 @@ class SubOrganizationForm(forms.ModelForm):
         # the fields can be dynamically exclude, for example set them to readonly in admin
         if 'data_source' in self.fields:
             # Only allow selecting data source within editable sources
-            self.fields['data_source'].queryset = get_data_source_model().objects.filter(user_editable=True)
+            self.fields['data_source'].queryset = get_data_source_model().objects.filter(user_editable_organizations=True)
 
     def clean_internal_type(self):
         return self.initial['internal_type']  # do not allow changing internal_type

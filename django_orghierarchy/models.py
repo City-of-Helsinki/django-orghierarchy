@@ -14,7 +14,7 @@ class AbstractDataSource(models.Model):
     """
     id = models.CharField(max_length=100, primary_key=True)
     name = models.CharField(max_length=255)
-    user_editable = models.BooleanField(default=False, verbose_name=_('Objects may be edited by users'))
+    user_editable_organizations = models.BooleanField(default=False, verbose_name=_('Organizations may be edited by users'))
 
     class Meta:
         abstract = True

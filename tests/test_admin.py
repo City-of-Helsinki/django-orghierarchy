@@ -29,7 +29,7 @@ class TestSubOrganizationInline(TestCase):
 
         self.normal_org = OrganizationFactory(internal_type=Organization.NORMAL)
         self.affiliated_org = OrganizationFactory(internal_type=Organization.AFFILIATED)
-        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
+        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable_organizations=True)))
 
     def test_get_queryset(self):
         sub_org_inline = SubOrganizationInline(Organization, self.site)
@@ -103,7 +103,7 @@ class TestAddSubOrganizationInline(TestCase):
         self.site = AdminSite()
         self.factory = RequestFactory()
 
-        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
+        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable_organizations=True)))
 
     def test_get_queryset(self):
         sub_org_inline = AddSubOrganizationInline(Organization, self.site)
@@ -177,7 +177,7 @@ class TestProtectedSubOrganizationInline(TestCase):
 
         self.normal_org = OrganizationFactory(internal_type=Organization.NORMAL)
         self.affiliated_org = OrganizationFactory(internal_type=Organization.AFFILIATED)
-        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
+        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable_organizations=True)))
 
     def test_get_queryset(self):
         sub_org_inline = ProtectedSubOrganizationInline(Organization, self.site)
@@ -231,7 +231,7 @@ class TestAffiliatedOrganizationInline(TestCase):
         self.normal_org = OrganizationFactory(internal_type=Organization.NORMAL)
         self.affiliated_org = OrganizationFactory(internal_type=Organization.AFFILIATED)
         self.editable_org = OrganizationFactory(internal_type=Organization.AFFILIATED,
-                                                data_source=(DataSourceFactory(user_editable=True)))
+                                                data_source=(DataSourceFactory(user_editable_organizations=True)))
 
     def test_get_queryset(self):
         aff_org_inline = AffiliatedOrganizationInline(Organization, self.site)
@@ -305,7 +305,7 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         self.site = AdminSite()
         self.factory = RequestFactory()
 
-        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
+        self.editable_org = OrganizationFactory(data_source=(DataSourceFactory(user_editable_organizations=True)))
 
     def test_get_queryset(self):
         sub_org_inline = AddAffiliatedOrganizationInline(Organization, self.site)
@@ -380,7 +380,7 @@ class TestProtectedAffiliatedOrganizationInline(TestCase):
         self.normal_org = OrganizationFactory(internal_type=Organization.NORMAL)
         self.affiliated_org = OrganizationFactory(internal_type=Organization.AFFILIATED)
         self.editable_org = OrganizationFactory(internal_type=Organization.AFFILIATED,
-                                                data_source=(DataSourceFactory(user_editable=True)))
+                                                data_source=(DataSourceFactory(user_editable_organizations=True)))
 
     def test_get_queryset(self):
         aff_org_inline = ProtectedAffiliatedOrganizationInline(Organization, self.site)
@@ -433,7 +433,7 @@ class TestOrganizationAdmin(TestCase):
         self.organization = OrganizationFactory()
         self.affiliated_organization = OrganizationFactory(
             internal_type=Organization.AFFILIATED, parent=self.organization)
-        self.editable_organization = OrganizationFactory(data_source=(DataSourceFactory(user_editable=True)))
+        self.editable_organization = OrganizationFactory(data_source=(DataSourceFactory(user_editable_organizations=True)))
 
     def test_get_queryset(self):
         org = OrganizationFactory()

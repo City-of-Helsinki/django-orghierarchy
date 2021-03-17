@@ -16,7 +16,7 @@ data_source_model = swapper.get_model_name('django_orghierarchy', 'DataSource')
 if data_source_model == 'django_orghierarchy.DataSource':
     @admin.register(get_data_source_model())
     class DataSourceAdmin(admin.ModelAdmin):
-        list_display = ('id', 'name', 'user_editable')
+        list_display = ('id', 'name', 'user_editable_organizations')
 
 
 @admin.register(OrganizationClass)
@@ -37,7 +37,7 @@ class SubOrganizationInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.filter(internal_type=self.organization_type, data_source__user_editable=True)
+        return queryset.filter(internal_type=self.organization_type, data_source__user_editable_organizations=True)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -88,7 +88,7 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.filter(internal_type=self.organization_type, data_source__user_editable=False)
+        return queryset.filter(internal_type=self.organization_type, data_source__user_editable_organizations=False)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -206,7 +206,7 @@ class OrganizationAdmin(DraggableMPTTAdmin):
             if request.user.has_perm('django_orghierarchy.change_organization_regular_users'):
                 del readonly_fields['regular_users']
             return readonly_fields
-        if obj and not obj.data_source.user_editable:
+        if obj and not obj.data_source.user_editable_organizations:
             # Organization data from protected data sources may not be edited
             if not request.user.has_perm('django_orghierarchy.replace_organization'):
                 # Replacing an organization in the hierarchy requires extra privileges

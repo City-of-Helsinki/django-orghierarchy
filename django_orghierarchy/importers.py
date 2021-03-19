@@ -324,7 +324,7 @@ class RestAPIImporter:
         try:
             # enforce lower case id standard, but recognize upper case ids as equal:
             organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
-            logger.info('Organization already exists: {0}'.format(organization.id))
+            logger.debug('Organization already exists: {0}'.format(organization.id))
 
             for field in self.update_fields:
                 config = self.field_config.get(field) or {}

@@ -23,6 +23,7 @@ class DataType(Enum):
     STR_LOWER = 'str_lower'
     LINK = 'link'
     REGEX = 'regex'
+    ORG_ID = 'org_id'
 
 
 class RestAPIImporter:
@@ -57,12 +58,13 @@ class RestAPIImporter:
         - field_config: Configs for each field. Config options:
             - source_field: The source data object key where the field value comes from.
                 Defaults to original field name.
-            - data_type: The data type for the field, can be 'value', 'str_lower', 'link' or 'regex'.
+            - data_type: The data type for the field, can be 'value', 'str_lower', 'link', 'regex' or 'org_id'.
                 Defaults to 'value'. If the data type is 'value', it will return the value
                 from source data; if the data type is 'str_lower', it will return the value stringified
                 and lowercased; if the data type is 'link', it will return the data fetched
                 from the link; if the data type is 'regex', it will return the value extracted
-                from the given pattern.
+                from the given pattern. If the data type is 'org_id', it will return the organization
+                in the JSON with the given 'id'.
             - optional: Whether the importer will continue if the field is missing.
                 Defaults to False.
         - rename_data_source: Data sources that are renamed during import.
@@ -131,7 +133,7 @@ class RestAPIImporter:
         'field_config': {
             'parent': {
                 'source_field': 'parent_id',
-                'data_type': 'value',
+                'data_type': 'org_id',
                 'optional': True,
             },
             'origin_id': {
@@ -194,6 +196,12 @@ class RestAPIImporter:
                 name_field: self.config['default_parent_organization']
             }
             self._default_parent = self._import_organization(default_parent_data)
+        # Save all the data from the REST endpoint in a single dict.
+        # This is for cases where we need to access the data by id instead of link.
+        # Caching is necessary for importing all parent organizations before their children.
+        self._data_dict = {}
+        for data_item in self._data_iter(self.url):
+            self._data_dict[data_item["id"]] = data_item
 
     @property
     def fields(self):
@@ -279,7 +287,7 @@ class RestAPIImporter:
 
     def import_data(self):
         """Import data"""
-        for data_item in self._data_iter(self.url):
+        for data_item in self._data_dict.values():
             self._import_organization(data_item)
 
     @transaction.atomic
@@ -289,20 +297,13 @@ class RestAPIImporter:
         The organization import is transactional so, for example, we do not
         accidentally save organization without parent if the parent organization
         saving failed for some reason.
-
-        If a single value is provided to organization field, we assume it's
-        the id of the organization. This requires that all fields apart from id
-        must be marked *not* required in the config.
         """
         # id must always be present
         config = self.field_config.get('origin_id') or {}
         if isinstance(data, dict):
             incoming_data = data
-        elif isinstance(data, str):
-            # we are only referring to id. The organization might already exist, or it is imported later.
-            incoming_data = {config['source_field']: data} if config.get('source_field') else {'origin_id': data}
         else:
-            raise DataImportError('Organization data must be dict or an organization id.')
+            raise DataImportError('Organization data must be dict.')
         origin_id = self._get_field_value(incoming_data, 'origin_id', config)
 
         # data source may be missing altogether, or it may be optional
@@ -322,10 +323,7 @@ class RestAPIImporter:
         # id is never imported in default config
 
         try:
-            # enforce lower case id standard, but recognize upper case ids as equal:
-            organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
-            logger.info('Organization already exists: {0}'.format(organization.id))
-
+            values_to_update = {}
             for field in self.update_fields:
                 config = self.field_config.get(field) or {}
                 try:
@@ -335,6 +333,19 @@ class RestAPIImporter:
                         continue
                     else:
                         raise exception
+                values_to_update[field] = value
+
+            # Organization parent (and its parent) have been imported and updated recursively. If one of
+            # them used to be the descendant of this organization, this might result in mptt InvalidMove
+            # exception if this organization instance is not up to date with the database.
+            # See https://github.com/django-mptt/django-mptt/issues/650
+
+            # Therefore, we may only fetch the organization from the db *after* all its parents have been
+            # processed, to get up to date status of the mptt tree before saving each organization.
+            # enforce lower case id standard, but recognize upper case ids as equal:
+            organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
+            logger.info('Organization already exists: {0}'.format(organization.id))
+            for field, value in values_to_update.items():
                 setattr(organization, field, value)
             if (
                 self.config.get('default_parent_organization', None)
@@ -400,7 +411,7 @@ class RestAPIImporter:
 
         The iterator will follow over next page links if available.
         """
-        logger.info('Start importing data from {0} ...'.format(url))
+        logger.info('Start reading data from {0} ...'.format(url))
 
         r = requests.get(url)
         try:
@@ -412,11 +423,12 @@ class RestAPIImporter:
         for data_item in data[self.results_key] if self.results_key else data:
             yield data_item
 
-        logger.info('Importing data from {0} completed'.format(url))
+        logger.info('Reading data from {0} completed'.format(url))
 
         if self.next_key and data[self.next_key]:
             next_url = data[self.next_key]
             yield from self._data_iter(next_url)
+
 
     def _get_field_value(self, data_item, field, config):
         """Get source value for the field from the data item
@@ -427,6 +439,7 @@ class RestAPIImporter:
 
         If the data type is DataType.VALUE, the value will be returned;
         If the data type is DataType.STR_LOWER, the value will be returned stringified to lower case;
+        If the data type is DataType.ORG_ID, corresponding organization will be returned;
         If the data type is DataType.LINK, the data in the link will be returned;
         If the data type is DataType.REGEX, the extracted value for the pattern will be returned.
         """
@@ -452,6 +465,8 @@ class RestAPIImporter:
 
         if data_type == DataType.STR_LOWER:
             value = str(value).lower()
+        elif data_type == DataType.ORG_ID:
+            value = self._data_dict[value]
         elif data_type == DataType.LINK:
             value = self._get_link_data(value)
         elif data_type == DataType.REGEX:

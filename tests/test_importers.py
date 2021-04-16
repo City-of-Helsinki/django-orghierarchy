@@ -82,9 +82,10 @@ tprek_organization_2 = {
     'ignored_field': 'This field will be ignored',
 }
 
+# TPREK may have missing parent organizations. Pay no heed.
 tprek_organization_3 = {
     'id': '333',
-    'parent_id': '111',
+    'parent_id': '444',
     'organization_type': 'TEST_TYPE_2',
     'name_fi': 'Organization-3',
     'ignored_field': 'This field will be ignored',
@@ -567,6 +568,21 @@ class TestTprekRestApiImporter(TestRestApiImporter):
         self.assertEqual(organization.parent_id, 'tprek:222')
         self.assertEqual(organization.parent.parent.name, 'Pääkaupunkiseudun toimipisterekisteri')
         self.assertEqual(organization.parent.parent_id, 'tprek:tprek')
+
+    @patch('requests.get', MagicMock(side_effect=mock_request_get))
+    def test_import_organization_with_missing_parent(self):
+        organization = self.importer._import_organization(tprek_organization_3)
+        print(organization)
+        qs = Organization.objects.all()
+
+        # also created parent organization.
+        # parent was not found, so organization will have the default
+        default_parent = Organization.objects.get(id='tprek:tprek')
+        self.assertQuerysetEqual(qs, [repr(default_parent), repr(organization)])
+        self.assertEqual(organization.name, 'Organization-3')
+        self.assertEqual(organization.id, 'tprek:333')
+        self.assertEqual(organization.parent.name, 'Pääkaupunkiseudun toimipisterekisteri')
+        self.assertEqual(organization.parent_id, 'tprek:tprek')
 
     @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
     def test_import_organization_without_parent(self):

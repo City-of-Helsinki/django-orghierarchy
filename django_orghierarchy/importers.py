@@ -466,7 +466,7 @@ class RestAPIImporter:
         if data_type == DataType.STR_LOWER:
             value = str(value).lower()
         elif data_type == DataType.ORG_ID:
-            value = self._data_dict[value]
+            value = self._data_dict.get(value, None)
         elif data_type == DataType.LINK:
             value = self._get_link_data(value)
         elif data_type == DataType.REGEX:

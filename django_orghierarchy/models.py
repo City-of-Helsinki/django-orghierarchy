@@ -2,6 +2,7 @@ import swapper
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -95,6 +96,14 @@ class Organization(MPTTModel, DataModel):
     replaced_by = models.OneToOneField(
         'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replaced_organization',
         help_text=_('The organization that replaces this organization'))
+    
+    @cached_property
+    def sub_organizations(self):
+        return self.children.filter(internal_type=self.NORMAL)
+
+    @cached_property
+    def affiliated_organizations(self):
+        return self.children.filter(internal_type=self.AFFILIATED)
 
     class Meta:
         unique_together = ('data_source', 'origin_id')
@@ -110,11 +119,3 @@ class Organization(MPTTModel, DataModel):
         if self.dissolution_date:
             return self.name + ' (dissolved)'
         return self.name
-
-    @property
-    def sub_organizations(self):
-        return self.children.filter(internal_type=self.NORMAL)
-
-    @property
-    def affiliated_organizations(self):
-        return self.children.filter(internal_type=self.AFFILIATED)

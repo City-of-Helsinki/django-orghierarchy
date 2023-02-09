@@ -480,8 +480,9 @@ class TestOrganizationAdmin(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        organization_class = OrganizationClassFactory()
-        organization = OrganizationFactory.build(classification=organization_class)
+        data_source = DataSourceFactory()
+        organization_class = OrganizationClassFactory(data_source=data_source)
+        organization = OrganizationFactory.build(classification=organization_class, data_source=data_source)
         oa.save_model(request, organization, None, None)
         self.assertEqual(organization.created_by, self.admin)
         self.assertEqual(organization.last_modified_by, self.admin)

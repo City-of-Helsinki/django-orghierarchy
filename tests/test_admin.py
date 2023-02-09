@@ -500,14 +500,15 @@ class TestOrganizationAdmin(TestCase):
         request = self.factory.get('/fake-url/')
         request.user = self.admin
 
-        organization_class = OrganizationClassFactory()
-        organization = OrganizationFactory.build(classification=organization_class)
-        organization2 = OrganizationFactory.build(classification=organization_class)
-        organization3 = OrganizationFactory.build(classification=organization_class)
-        organization4 = OrganizationFactory.build(classification=organization_class)
-        organization5 = OrganizationFactory.build(classification=organization_class)
-        organization6 = OrganizationFactory.build(classification=organization_class)
-        organization7 = OrganizationFactory.build(classification=organization_class)
+        data_source = DataSourceFactory()
+        organization_class = OrganizationClassFactory(data_source=data_source)
+        organization = OrganizationFactory.build(classification=organization_class, data_source=data_source)
+        organization2 = OrganizationFactory.build(classification=organization_class, data_source=data_source)
+        organization3 = OrganizationFactory.build(classification=organization_class, data_source=data_source)
+        organization4 = OrganizationFactory.build(classification=organization_class, data_source=data_source)
+        organization5 = OrganizationFactory.build(classification=organization_class, data_source=data_source)
+        organization6 = OrganizationFactory.build(classification=organization_class, data_source=data_source)
+        organization7 = OrganizationFactory.build(classification=organization_class, data_source=data_source)
         organization2.parent = organization
         organization3.parent = organization
         organization4.parent = organization2

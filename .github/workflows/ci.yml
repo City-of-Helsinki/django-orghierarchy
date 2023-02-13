@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.8
           cache: pip
 
       - name: Install dependencies
@@ -42,11 +42,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.8
 
       - name: Install dependencies
         run: pip install -U setuptools wheel build
@@ -59,7 +59,7 @@ jobs:
   #  runs-on: ubuntu-latest
   #  steps:
   #    - name: Checkout
-  #      uses: actions/checkout@v2
+  #      uses: actions/checkout@v3
   #    - name: Run black
   #      uses: psf/black@stable
   #      with:
@@ -70,7 +70,7 @@ jobs:
   #  runs-on: ubuntu-latest
   #  steps:
   #    - name: Checkout
-  #      uses: actions/checkout@v2
+  #      uses: actions/checkout@v3
   #    - name: Set up Python
   #      uses: actions/setup-python@v2
   #      with:
@@ -79,7 +79,7 @@ jobs:
   #    - name: Install dependencies
   #      run: pip install flake8 pep8-naming flake8-bugbear
   #    - name: Run flake8
-  #      uses: liskin/gh-problem-matcher-wrap@v1
+  #      uses: liskin/gh-problem-matcher-wrap@v2
   #      with:
   #        linters: flake8
   #        run: flake8
@@ -89,7 +89,7 @@ jobs:
   #  runs-on: ubuntu-latest
   #  steps:
   #    - name: Checkout
-  #      uses: actions/checkout@v2
+  #      uses: actions/checkout@v3
   #    - name: Set up Python
   #      uses: actions/setup-python@v2
   #      with:
@@ -98,7 +98,7 @@ jobs:
   #    - name: Install dependencies
   #      run: pip install isort
   #    - name: Run isort
-  #      uses: liskin/gh-problem-matcher-wrap@v1
+  #      uses: liskin/gh-problem-matcher-wrap@v2
   #      with:
   #        linters: isort
   #        run: isort -c .

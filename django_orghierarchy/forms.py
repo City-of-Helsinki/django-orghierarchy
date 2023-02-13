@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import widgets
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from .models import Organization
 from .utils import get_data_source_model

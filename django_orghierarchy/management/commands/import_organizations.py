@@ -56,8 +56,8 @@ class Command(BaseCommand):
                 rename_data_source[old_name] = new_name
             config['rename_data_source'] = rename_data_source
 
-        importer = RestAPIImporter(url, config)
         try:
+            importer = RestAPIImporter(url, config)
             importer.import_data()
         except DataImportError as e:
             self.stderr.write('Import failed: {0}'.format(e))

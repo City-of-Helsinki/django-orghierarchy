@@ -1,0 +1,104 @@
+name: Continuous integration
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt codecov
+          pip install -e .
+
+      - name: Run tests
+        run: pytest -ra -vv --doctest-modules --cov=.
+
+      - name: Run custom data source tests
+        run: python manage.py test --tag=custom_ds --settings=tests.test_app.settings_custom_ds
+
+      - name: Run custom pk tests
+        run: python manage.py test --tag=custom_pk_ds --settings=tests.test_app.settings_custom_pk_ds
+
+      - name: Coverage
+        run: codecov
+
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: pip install -U setuptools wheel build
+      - name: Build
+        run: python -m build .
+
+  # TODO to be enabled later
+  #black:
+  #  name: Coding style - black
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Checkout
+  #      uses: actions/checkout@v3
+  #    - name: Run black
+  #      uses: psf/black@stable
+  #      with:
+  #        args: ". --check"
+
+  #flake8:
+  #  name: Coding style - flake8
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Checkout
+  #      uses: actions/checkout@v3
+  #    - name: Set up Python
+  #      uses: actions/setup-python@v2
+  #      with:
+  #        python-version: 3.8
+  #
+  #    - name: Install dependencies
+  #      run: pip install flake8 pep8-naming flake8-bugbear
+  #    - name: Run flake8
+  #      uses: liskin/gh-problem-matcher-wrap@v2
+  #      with:
+  #        linters: flake8
+  #        run: flake8
+
+  #isort:
+  #  name: Coding style - isort
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Checkout
+  #      uses: actions/checkout@v3
+  #    - name: Set up Python
+  #      uses: actions/setup-python@v2
+  #      with:
+  #        python-version: 3.8
+  #
+  #    - name: Install dependencies
+  #      run: pip install isort
+  #    - name: Run isort
+  #      uses: liskin/gh-problem-matcher-wrap@v2
+  #      with:
+  #        linters: isort
+  #        run: isort -c .

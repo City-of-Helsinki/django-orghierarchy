@@ -3,7 +3,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
 
 
@@ -96,7 +96,7 @@ class Organization(MPTTModel, DataModel):
     replaced_by = models.OneToOneField(
         'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replaced_organization',
         help_text=_('The organization that replaces this organization'))
-    
+
     @cached_property
     def sub_organizations(self):
         return self.children.filter(internal_type=self.NORMAL)

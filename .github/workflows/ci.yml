@@ -4,6 +4,9 @@ on:
   push:
     branches: [master]
   pull_request:
+      branches: [ master ]
+  # Enable manual run
+  workflow_dispatch:
 
 jobs:
   test:

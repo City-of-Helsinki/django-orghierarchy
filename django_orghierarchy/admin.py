@@ -206,7 +206,7 @@ class OrganizationAdmin(DraggableMPTTAdmin):
             if request.user.has_perm('django_orghierarchy.change_organization_regular_users'):
                 del readonly_fields['regular_users']
             return readonly_fields
-        if obj and not obj.data_source.user_editable_organizations:
+        if obj and obj.data_source and not obj.data_source.user_editable_organizations:
             # Organization data from protected data sources may not be edited
             if not request.user.has_perm('django_orghierarchy.replace_organization'):
                 # Replacing an organization in the hierarchy requires extra privileges

@@ -176,7 +176,7 @@ class OrganizationAdmin(DraggableMPTTAdmin):
     def get_queryset(self, request):
         if not request.user.is_superuser:
             if not request.user.admin_organizations.all():
-                return []
+                return Organization.objects.none()
             # regular admins have rights to all organizations below their level
             admin_orgs = []
             for admin_org in request.user.admin_organizations.all():

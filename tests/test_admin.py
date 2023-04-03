@@ -452,6 +452,7 @@ class TestOrganizationAdmin(TestCase):
         # test against superuser admin
         request.user = self.admin
         qs = oa.get_queryset(request)
+        self.assertIsInstance(qs, Organization.objects._queryset_class)
         self.assertQuerysetEqual(
             qs,
             [repr(self.organization), repr(self.affiliated_organization), repr(self.editable_organization),
@@ -461,14 +462,17 @@ class TestOrganizationAdmin(TestCase):
         # test against non-superuser admin
         request.user = normal_admin
         qs = oa.get_queryset(request)
+        self.assertIsInstance(qs, Organization.objects._queryset_class)
         self.assertQuerysetEqual(qs, [])
 
         self.organization.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
+        self.assertIsInstance(qs, Organization.objects._queryset_class)
         self.assertQuerysetEqual(qs, [repr(self.organization), repr(self.affiliated_organization), repr(sub_org)])
 
         org.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
+        self.assertIsInstance(qs, Organization.objects._queryset_class)
         self.assertQuerysetEqual(
             qs,
             [repr(self.organization), repr(self.affiliated_organization), repr(org), repr(sub_org),

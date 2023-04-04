@@ -1,13 +1,20 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import Permission
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 
-from django_orghierarchy.admin import OrganizationAdmin, SubOrganizationInline, AddSubOrganizationInline,\
-    ProtectedSubOrganizationInline, AffiliatedOrganizationInline, AddAffiliatedOrganizationInline,\
-    ProtectedAffiliatedOrganizationInline
+from django_orghierarchy.admin import (
+    AddAffiliatedOrganizationInline,
+    AddSubOrganizationInline,
+    AffiliatedOrganizationInline,
+    OrganizationAdmin,
+    ProtectedAffiliatedOrganizationInline,
+    ProtectedSubOrganizationInline,
+    SubOrganizationInline,
+)
 from django_orghierarchy.models import DataSource, Organization
-from .factories import OrganizationClassFactory, OrganizationFactory, DataSourceFactory
+
+from .factories import DataSourceFactory, OrganizationClassFactory, OrganizationFactory
 from .utils import clear_user_perm_cache, make_admin
 
 
@@ -433,7 +440,9 @@ class TestOrganizationAdmin(TestCase):
         self.organization = OrganizationFactory()
         self.affiliated_organization = OrganizationFactory(
             internal_type=Organization.AFFILIATED, parent=self.organization)
-        self.editable_organization = OrganizationFactory(data_source=(DataSourceFactory(user_editable_organizations=True)))
+        self.editable_organization = OrganizationFactory(
+            data_source=(DataSourceFactory(user_editable_organizations=True))
+        )
 
     def test_get_queryset(self):
         org = OrganizationFactory()

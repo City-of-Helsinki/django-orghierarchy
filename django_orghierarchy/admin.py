@@ -1,12 +1,13 @@
+from functools import reduce
+
 import swapper
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from mptt.admin import DraggableMPTTAdmin
-from functools import reduce
 
 from .forms import AffiliatedOrganizationForm, OrganizationForm, SubOrganizationForm
-from .models import OrganizationClass, Organization
+from .models import Organization, OrganizationClass
 from .utils import get_data_source_model
 
 data_source_model = swapper.get_model_name('django_orghierarchy', 'DataSource')

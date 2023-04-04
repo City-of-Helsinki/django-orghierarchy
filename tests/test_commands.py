@@ -6,6 +6,7 @@ from django.test import TestCase
 from django_orghierarchy.importers import DataImportError
 from django_orghierarchy.models import Organization, OrganizationClass
 from django_orghierarchy.utils import get_data_source_model
+
 from .test_importers import mock_request_get
 
 

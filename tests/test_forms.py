@@ -1,8 +1,13 @@
 from django.test import TestCase
 
-from django_orghierarchy.forms import OrganizationForm, SubOrganizationForm, AffiliatedOrganizationForm
+from django_orghierarchy.forms import (
+    AffiliatedOrganizationForm,
+    OrganizationForm,
+    SubOrganizationForm,
+)
 from django_orghierarchy.models import Organization
-from .factories import OrganizationClassFactory, DataSourceFactory, OrganizationFactory
+
+from .factories import DataSourceFactory, OrganizationClassFactory, OrganizationFactory
 
 
 class TestOrganizationForm(TestCase):

@@ -12,9 +12,10 @@ Reusable Django application for hierarchical organizations
 
 4. Run migrations
 
-    ```python
-    python manage.py migrate django_orghierarchy
-    ```
+ ```bash
+ python manage.py migrate django_orghierarchy
+ ```
+
 
 # Usage
 
@@ -25,30 +26,49 @@ Each organization may have `admin_users` and `regular_users`, which are linked t
 Your desired user rights and permissions for each user group in each level of the organization depend on your application details, so you should implement your own user rights checks depending on your needs. You may e.g. create a user model permissions mixin that uses information on the user organization, as done in [Linkedevents permissions](https://github.com/City-of-Helsinki/linkedevents/blob/master/events/permissions.py) and [Linkedevents user model](https://github.com/City-of-Helsinki/linkedevents/blob/master/helevents/models.py). The user rights model is originally specified [here](https://github.com/City-of-Helsinki/linkedevents/issues/235).
 
 You may import an existing organization hierarchy from a REST API corresponding to the [6Aika Paatos decisionmaking API specification](https://github.com/6aika/api-paatos), based on the [Popolo project](http://www.popoloproject.com/), with the included importer, for example:
-
-    python manage.py import_organizations "https://api.hel.fi/paatos/v1/organization/"
+```bash
+python manage.py import_organizations "https://api.hel.fi/paatos/v1/organization/"
+```
     
 You may give the organization data source a specific id to correspond to your own data source model ids in your project:
-
-    python manage.py import_organizations "https://api.hel.fi/paatos/v1/organization/" -s original_id:imported_id
+```bash
+python manage.py import_organizations "https://api.hel.fi/paatos/v1/organization/" -s original_id:imported_id
+```
 
 Otherwise, the data source id in the original API is used for the imported organizations (`helsinki` in the Helsinki API).
 
+
 # Development
+
+Install requirements.
+
+```bash
+# Package requirements
+pip install -e .
+# Development requirements
+pip install -r requirements.txt
+```
+
 
 ## Tests
 
+
 ### Unit tests
 
-Run tests
+Run the tests.
 
-    py.test
+```bash
+pytest
+```
 
-Run tests with coverage report
+Run the tests with coverage report.
 
-    py.test --cov-report html --cov .
+```bash
+pytest --cov-report html --cov .
+```
     
 Open htmlcov/index.html for the coverage report.
+
 
 ### Integration tests
 
@@ -56,8 +76,9 @@ We need to provide different settings files for the test as the
 setting variables for swappable model are only evaluated the first
 time the module is imported.
 
-Run tests
-
-    python manage.py test --tag=custom_ds --settings=tests.test_app.settings_custom_ds
-    python manage.py test --tag=custom_pk_ds --settings=tests.test_app.settings_custom_pk_ds
+Run the integration tests.
+```bash
+python manage.py test --tag=custom_ds --settings=tests.test_app.settings_custom_ds
+python manage.py test --tag=custom_pk_ds --settings=tests.test_app.settings_custom_pk_ds
+```
 

@@ -1,5 +1,6 @@
-django<4.0
-django-mptt>=0.9
-djangorestframework
-requests
-swapper
+flake8>=3.8.4
+coverage>=5.3
+factory-boy>=3.1.0
+pytest>=6.1.1
+pytest-cov>=2.10.1
+pytest-django>=3.10.0

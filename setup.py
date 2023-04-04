@@ -1,4 +1,5 @@
 import os
+
 from setuptools import find_packages, setup
 
 from django_orghierarchy import __version__

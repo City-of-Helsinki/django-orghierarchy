@@ -561,7 +561,11 @@ class TestTprekRestApiImporter(TestRestApiImporter):
 
         # also created parent organization.
         # parent will have the default parent organization
-        self.assertQuerysetEqual(qs, [repr(default_parent), repr(organization.parent), repr(organization)], ordered=False)
+        self.assertQuerysetEqual(
+            qs,
+            [repr(default_parent), repr(organization.parent), repr(organization)],
+            ordered=False
+        )
         self.assertEqual(organization.name, 'Organization-1')
         self.assertEqual(organization.id, 'tprek:111')
         self.assertEqual(organization.parent.name, 'Organization-2')
@@ -604,7 +608,11 @@ class TestTprekRestApiImporter(TestRestApiImporter):
 
         # also created parent organization.
         # parent will have the default parent organization
-        self.assertQuerysetEqual(qs, [repr(default_parent), repr(organization.parent), repr(organization)], ordered=False)
+        self.assertQuerysetEqual(
+            qs,
+            [repr(default_parent), repr(organization.parent), repr(organization)],
+            ordered=False
+        )
         self.assertEqual(organization.name, 'Organization-1')
         self.assertEqual(organization.id, 'tprek:111')
         self.assertEqual(organization.parent.name, 'Organization-2')
@@ -623,7 +631,11 @@ class TestTprekRestApiImporter(TestRestApiImporter):
         new_importer = RestAPIImporter('http://fake.tprek.url/department/', self.config)
         organization = new_importer._import_organization(changed_organization)
         # Now the parents should have switched.
-        self.assertQuerysetEqual(qs, [repr(default_parent), repr(organization.parent), repr(organization)], ordered=False)
+        self.assertQuerysetEqual(
+            qs,
+            [repr(default_parent), repr(organization.parent), repr(organization)],
+            ordered=False
+        )
         self.assertEqual(organization.name, 'Organization-2')
         self.assertEqual(organization.id, 'tprek:222')
         self.assertEqual(organization.parent.name, 'Organization-1')

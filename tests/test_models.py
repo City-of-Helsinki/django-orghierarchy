@@ -1,6 +1,7 @@
 from django.test import TestCase
 
 from django_orghierarchy.models import Organization
+
 from .factories import DataSourceFactory, OrganizationClassFactory, OrganizationFactory
 
 

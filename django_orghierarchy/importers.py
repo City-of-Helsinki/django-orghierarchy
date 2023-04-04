@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
 
-from .models import OrganizationClass, Organization
+from .models import Organization, OrganizationClass
 from .utils import get_data_source_model
 
 logger = logging.getLogger(__name__)
@@ -428,7 +428,6 @@ class RestAPIImporter:
         if self.next_key and data[self.next_key]:
             next_url = data[self.next_key]
             yield from self._data_iter(next_url)
-
 
     def _get_field_value(self, data_item, field, config):
         """Get source value for the field from the data item

@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
-from django_orghierarchy.utils import get_data_source_model, swapper
 from django_orghierarchy.models import DataSource
+from django_orghierarchy.utils import get_data_source_model, swapper
 
 
 class TestGetDataSourceModel(TestCase):

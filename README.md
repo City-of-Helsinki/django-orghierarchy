@@ -100,4 +100,3 @@ Run the integration tests.
 pytest -m custom_ds --ds=tests.test_app.settings_custom_ds
 pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds
 ```
-

@@ -74,11 +74,11 @@ Open htmlcov/index.html for the coverage report.
 
 We need to provide different settings files for the test as the
 setting variables for swappable model are only evaluated the first
-time the module is imported.
+time the module is imported. Integration tests are skipped by default.
 
 Run the integration tests.
 ```bash
-python manage.py test --tag=custom_ds --settings=tests.test_app.settings_custom_ds
-python manage.py test --tag=custom_pk_ds --settings=tests.test_app.settings_custom_pk_ds
+pytest -m custom_ds --ds=tests.test_app.settings_custom_ds
+pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds
 ```
 

@@ -98,7 +98,7 @@ tprek_organizations = {
 }
 
 
-def mock_request_get(url):
+def mock_request_get(url, *args, **kwargs):
     m = re.search(r'http://fake.url/organizations/(\d+)/', url)
     if m:
         org_id = m.group(1)
@@ -124,7 +124,7 @@ def mock_request_get(url):
     return MockResponse({}, status_code=404)
 
 
-def mock_tprek_request_get(url):
+def mock_tprek_request_get(url, *args, **kwargs):
     m = re.search(r'http://fake.tprek.url/department/', url)
     if m:
         return MockResponse(tprek_organizations.values())

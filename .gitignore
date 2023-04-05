@@ -1,6 +1,12 @@
 *.py[cod]
 __pycache__
 
+# pyenv
+.python-version
+
+# IDEs
+.idea/
+
 # C extensions
 *.so
 

@@ -70,6 +70,25 @@ pytest --cov-report html --cov .
 Open htmlcov/index.html for the coverage report.
 
 
+### Running tests against multiple environments
+
+You can run the tests against multiple environments by using [tox](https://tox.readthedocs.io/en/latest/).
+Install `tox` globally and run:
+
+```bash
+tox
+```
+
+Use the `-f` option to specify target environments.
+
+```bash
+# Target only Python 3.9 environments
+tox -f py39
+# Target Python 3.9 and Django 3.2
+tox -f py39 django32
+```
+
+
 ### Integration tests
 
 We need to provide different settings files for the test as the

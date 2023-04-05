@@ -1,14 +1,16 @@
+import pytest
 from django.contrib import admin
-from django.test import TestCase, tag
+from django.test import TestCase
 
-from django_orghierarchy.utils import get_data_source_model
 from django_orghierarchy.models import DataSource, Organization
+from django_orghierarchy.utils import get_data_source_model
+
 from ..models import CustomDataSource
 
+pytestmark = [pytest.mark.integration_test, pytest.mark.custom_ds]
 
-@tag('custom_ds')
+
 class TestCustomDataSource(TestCase):
-
     def test_get_data_source_model(self):
         model = get_data_source_model()
         self.assertIs(model, CustomDataSource)

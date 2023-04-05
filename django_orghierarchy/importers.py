@@ -154,6 +154,7 @@ class RestAPIImporter:
     }
 
     default_config = paatos_config
+    timeout = 10
 
     def __init__(self, url, config=None):
         self.url = url
@@ -413,7 +414,7 @@ class RestAPIImporter:
         """
         logger.info('Start reading data from {0} ...'.format(url))
 
-        r = requests.get(url)
+        r = requests.get(url, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.HTTPError as e:
@@ -494,8 +495,7 @@ class RestAPIImporter:
             )
         return data
 
-    @staticmethod
-    def _get_link_data(value):
+    def _get_link_data(self, value):
         """Get data fetched from the link"""
         validator = URLValidator()
         try:
@@ -503,7 +503,7 @@ class RestAPIImporter:
         except ValidationError:
             raise DataImportError('Invalid URL: {0}'.format(value))
 
-        r = requests.get(value)
+        r = requests.get(value, timeout=self.timeout)
 
         try:
             r.raise_for_status()

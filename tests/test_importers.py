@@ -576,7 +576,6 @@ class TestTprekRestApiImporter(TestRestApiImporter):
     @patch('requests.get', MagicMock(side_effect=mock_request_get))
     def test_import_organization_with_missing_parent(self):
         organization = self.importer._import_organization(tprek_organization_3)
-        print(organization)
         qs = Organization.objects.all()
 
         # also created parent organization.

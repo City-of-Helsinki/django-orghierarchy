@@ -289,6 +289,15 @@ class TestRestApiImporter(TestCase):
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.id, 'OpenDecisionAPI:class-with-no-source')
 
+    def test_import_organization_class_with_simple_string_and_remapped_data_source(self):
+        self.importer.config['rename_data_source'] = {'OpenDecisionAPI': 'remapped'}
+
+        organization_class = self.importer._import_organization_class('class-with-no-source')
+
+        qs = OrganizationClass.objects.all()
+        self.assertQuerysetEqual(qs, [repr(organization_class)])
+        self.assertEqual(organization_class.id, 'remapped:class-with-no-source')
+
     def test_import_organization_class_with_dict_data(self):
         data = {
             'id': 999,
@@ -527,6 +536,15 @@ class TestTprekRestApiImporter(TestRestApiImporter):
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.id, 'tprek:class-with-no-source')
+
+    def test_import_organization_class_with_simple_string_and_remapped_data_source(self):
+        self.importer.config['rename_data_source'] = {'tprek': 'remapped'}
+
+        organization_class = self.importer._import_organization_class('class-with-no-source')
+
+        qs = OrganizationClass.objects.all()
+        self.assertQuerysetEqual(qs, [repr(organization_class)])
+        self.assertEqual(organization_class.id, 'remapped:class-with-no-source')
 
     def test_import_organization_class_with_dict_data(self):
         pass

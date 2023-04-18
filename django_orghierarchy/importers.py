@@ -257,10 +257,11 @@ class RestAPIImporter:
         # default data source used if missing
         if 'data_source' not in data or not data['data_source']:
             data['data_source'] = self.default_data_source
+        data_source_instance = self.related_import_methods['data_source'](data['data_source'])
         # reformat id to fit our model
         if not isinstance(identifier, str) or ':' not in identifier:
-            data['id'] = data['data_source'] + ':' + str(identifier)
-        data['data_source'] = self.related_import_methods['data_source'](data['data_source'])
+            data['id'] = data_source_instance.pk + ':' + str(identifier)
+        data['data_source'] = data_source_instance
         # extra fields should not crash the import. Only use specified fields.
         data = {field: value for (field, value) in data.items() if field in supported_fields}
         if identifier not in self._organization_classes:

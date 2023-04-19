@@ -266,6 +266,18 @@ class TestRestApiImporter(TestCase):
         self.assertQuerysetEqual(Organization.objects.all(), [repr(organization)])
         self.assertEqual(organization.name, 'Organization-2')
 
+    @patch('requests.get', MagicMock(side_effect=mock_request_get))
+    def test_import_organization_data_with_skip_classifications(self):
+        """Organization is not imported if it's in the classification skip list."""
+        self.importer.config["skip_classifications"] = ["test-class-1"]
+        organization = self.importer._import_organization(organization_1)
+        self.assertIsNone(organization)
+
+        # Re-initialize the importer to clear the caches and data
+        importer = self.get_importer()
+        organization = importer._import_organization(organization_1)
+        self.assertEqual(organization.id, "test-source-1:abc-123")
+
     def test_import_data_source_with_string(self):
         data_source = self.importer._import_data_source('test-data-source')
         data_source_model = get_data_source_model()
@@ -571,6 +583,18 @@ class TestTprekRestApiImporter(TestRestApiImporter):
 
     def test_import_data_source_with_dict_data(self):
         pass
+
+    @patch('requests.get', MagicMock(side_effect=mock_tprek_request_get))
+    def test_import_organization_data_with_skip_classifications(self):
+        """Organization is not imported if it's in the classification skip list."""
+        self.importer.config["skip_classifications"] = ["TEST_TYPE_1"]
+        organization = self.importer._import_organization(tprek_organization_1)
+        self.assertIsNone(organization)
+
+        # Re-initialize the importer to clear the caches and data
+        importer = self.get_importer()
+        organization = importer._import_organization(tprek_organization_1)
+        self.assertEqual(organization.id, 'tprek:111')
 
     def test_import_organization_update_existing(self):
         organization = OrganizationFactory(

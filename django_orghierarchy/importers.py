@@ -56,6 +56,8 @@ class RestAPIImporter:
             in organization classes, if present.
         - update_fields: The fields to update if the organization with same origin_id and data
             source exists.
+        - skip_classifications: List of organization classifications which will cause
+            organizations of this type to be skipped upon import.
         - deprecated: Is the configuration considered deprecated. Default False.
         - field_config: Configs for each field. Config options:
             - source_field: The source data object key where the field value comes from.
@@ -243,6 +245,11 @@ class RestAPIImporter:
         return self.config.get('rename_data_source') or {}
 
     @property
+    def skip_classifications(self):
+        """List of organization classifications to skip"""
+        return self.config.get('skip_classifications') or []
+
+    @property
     def default_data_source(self):
         """Default data source string"""
         return self.config['default_data_source']
@@ -345,64 +352,84 @@ class RestAPIImporter:
         # id is never imported in default config
 
         try:
-            values_to_update = {}
-            for field in self.update_fields:
-                config = self.field_config.get(field) or {}
-                try:
-                    value = self._get_field_value(incoming_data, field, config)
-                except DataImportError:
-                    if config.get('optional'):
-                        continue
-                    else:
-                        raise
-                values_to_update[field] = value
-
-            # Organization parent (and its parent) have been imported and updated recursively. If one of
-            # them used to be the descendant of this organization, this might result in mptt InvalidMove
-            # exception if this organization instance is not up to date with the database.
-            # See https://github.com/django-mptt/django-mptt/issues/650
-
-            # Therefore, we may only fetch the organization from the db *after* all its parents have been
-            # processed, to get up to date status of the mptt tree before saving each organization.
-            # enforce lower case id standard, but recognize upper case ids as equal:
-            organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
-            logger.info(f'Updating organization: {origin_id}')
-            for field, value in values_to_update.items():
-                setattr(organization, field, value)
-            if (
-                self.config.get('default_parent_organization', None)
-                and not organization.parent
-                and organization != self._default_parent
-            ):
-                organization.parent = self._default_parent
-            organization.save()
-            logger.debug(f'Caching Organization: {origin_id}')
-            self._organizations[organization.origin_id] = organization
-
-            return organization
+            return self._import_organization_update(incoming_data, origin_id, data_source)
         except Organization.DoesNotExist:
-            object_data = {'origin_id': origin_id, 'data_source': data_source}
-            for field in self.fields:
-                config = self.field_config.get(field) or {}
-                try:
-                    object_data[field] = self._get_field_value(incoming_data, field, config)
-                except DataImportError:
-                    if config.get('optional'):
-                        continue
-                    else:
-                        raise
-            logger.info(f'Creating Organization: {origin_id}')
-            organization = Organization.objects.create(**object_data)
-            if (
-                self.config.get('default_parent_organization', None)
-                and not organization.parent
-                and organization != self._default_parent
-            ):
-                organization.parent = self._default_parent
-                organization.save()
-            logger.debug(f'Caching Organization: {origin_id}')
-            self._organizations[origin_id] = organization
-            return organization
+            return self._import_organization_create(incoming_data, origin_id, data_source)
+
+    def _import_organization_update(self, incoming_data, origin_id, data_source):
+        """Update an existing organization upon import."""
+        values_to_update = {}
+        for field in self.update_fields:
+            config = self.field_config.get(field) or {}
+            try:
+                value = self._get_field_value(incoming_data, field, config)
+            except DataImportError:
+                if config.get('optional'):
+                    continue
+                else:
+                    raise
+            values_to_update[field] = value
+
+        # Organization parent (and its parent) have been imported and updated recursively. If one of
+        # them used to be the descendant of this organization, this might result in mptt InvalidMove
+        # exception if this organization instance is not up-to-date with the database.
+        # See https://github.com/django-mptt/django-mptt/issues/650
+
+        # Therefore, we may only fetch the organization from the db *after* all its parents have been
+        # processed, to get up-to-date status of the mptt tree before saving each organization.
+        # enforce lower case id standard, but recognize upper case ids as equal:
+        organization = Organization.objects.get(origin_id__iexact=origin_id,
+                                                data_source=data_source)
+        logger.info(f'Updating organization: {origin_id}')
+        for field, value in values_to_update.items():
+            setattr(organization, field, value)
+        if (
+            self.config.get('default_parent_organization', None)
+            and not organization.parent
+            and organization != self._default_parent
+        ):
+            organization.parent = self._default_parent
+        organization.save()
+        logger.debug(f'Caching Organization: {origin_id}')
+        self._organizations[organization.origin_id] = organization
+
+        return organization
+
+    def _import_organization_create(self, incoming_data, origin_id, data_source):
+        """Create a new Organization instance upon import."""
+        object_data = {'origin_id': origin_id, 'data_source': data_source}
+        for field in self.fields:
+            config = self.field_config.get(field) or {}
+            try:
+                object_data[field] = self._get_field_value(incoming_data, field, config)
+            except DataImportError:
+                if config.get('optional'):
+                    continue
+                else:
+                    raise
+
+        # Check if we're supposed to skip importing organizations of this class
+        classification = object_data.get('classification')
+        if classification and classification.origin_id in self.skip_classifications:
+            self._organizations[origin_id] = None
+            logger.info(
+                f'Skipping organization: {origin_id} with type: {classification}'
+            )
+            return None
+
+        logger.info(f'Creating Organization: {origin_id}')
+        organization = Organization.objects.create(**object_data)
+        if (
+            self.config.get('default_parent_organization', None)
+            and not organization.parent
+            and organization != self._default_parent
+        ):
+            organization.parent = self._default_parent
+            organization.save()
+        logger.debug(f'Caching Organization: {origin_id}')
+        self._organizations[origin_id] = organization
+
+        return organization
 
     def _import_data_source(self, data):
         """Import data source

@@ -265,7 +265,8 @@ class RestAPIImporter:
         # extra fields should not crash the import. Only use specified fields.
         data = {field: value for (field, value) in data.items() if field in supported_fields}
         if identifier not in self._organization_classes:
-            organization_class, _ = OrganizationClass.objects.get_or_create(**data)
+            defaults = {'name': data.pop('name', data['id'])}
+            organization_class, _ = OrganizationClass.objects.get_or_create(**data, defaults=defaults)
             self._organization_classes[identifier] = organization_class
         return self._organization_classes[identifier]
 

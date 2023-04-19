@@ -313,11 +313,11 @@ class RestAPIImporter:
         config = self.field_config.get('data_source') or {}
         try:
             data_source = self._get_field_value(incoming_data, 'data_source', config)
-        except DataImportError as exception:
+        except DataImportError:
             if not config or config.get('optional'):
                 pass
             else:
-                raise exception
+                raise
         if not data_source:
             data_source = self._get_field_value(
                 {'data_source': self.default_data_source}, 'data_source', {'data_type': 'value'})
@@ -330,11 +330,11 @@ class RestAPIImporter:
                 config = self.field_config.get(field) or {}
                 try:
                     value = self._get_field_value(incoming_data, field, config)
-                except DataImportError as exception:
+                except DataImportError:
                     if config.get('optional'):
                         continue
                     else:
-                        raise exception
+                        raise
                 values_to_update[field] = value
 
             # Organization parent (and its parent) have been imported and updated recursively. If one of
@@ -364,11 +364,11 @@ class RestAPIImporter:
                 config = self.field_config.get(field) or {}
                 try:
                     object_data[field] = self._get_field_value(incoming_data, field, config)
-                except DataImportError as exception:
+                except DataImportError:
                     if config.get('optional'):
                         continue
                     else:
-                        raise exception
+                        raise
             organization = Organization.objects.create(**object_data)
             if (
                 self.config.get('default_parent_organization', None)
@@ -419,7 +419,7 @@ class RestAPIImporter:
         try:
             r.raise_for_status()
         except requests.HTTPError as e:
-            raise DataImportError(e)
+            raise DataImportError(e) from e
 
         data = r.json()
         for data_item in data[self.results_key] if self.results_key else data:
@@ -447,8 +447,8 @@ class RestAPIImporter:
         source_field = config.get('source_field') or field
         try:
             value = data_item[source_field]
-        except KeyError:
-            raise DataImportError('Field not found in source data: {0}'.format(source_field))
+        except KeyError as e:
+            raise DataImportError('Field not found in source data: {0}'.format(source_field)) from e
 
         if not value:
             return value
@@ -473,8 +473,8 @@ class RestAPIImporter:
         elif data_type == DataType.REGEX:
             try:
                 pattern = config['pattern']
-            except KeyError:
-                raise DataImportError('No regex pattern provided for the field: {0}'.format(field))
+            except KeyError as e:
+                raise DataImportError('No regex pattern provided for the field: {0}'.format(field)) from e
             value = self._get_regex_data(value, pattern)
 
         # import related objects
@@ -501,14 +501,14 @@ class RestAPIImporter:
         validator = URLValidator()
         try:
             validator(value)
-        except ValidationError:
-            raise DataImportError('Invalid URL: {0}'.format(value))
+        except ValidationError as e:
+            raise DataImportError('Invalid URL: {0}'.format(value)) from e
 
         r = requests.get(value, timeout=self.timeout)
 
         try:
             r.raise_for_status()
         except requests.HTTPError as e:
-            raise DataImportError(e)
+            raise DataImportError(e) from e
 
         return r.json()

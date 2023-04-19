@@ -282,12 +282,14 @@ class TestRestApiImporter(TestCase):
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.id, 'test-source-1:test-org-class')
+        self.assertEqual(organization_class.name, 'test-source-1:test-org-class')
 
     def test_import_organization_class_with_simple_string(self):
         organization_class = self.importer._import_organization_class('class-with-no-source')
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.id, 'OpenDecisionAPI:class-with-no-source')
+        self.assertEqual(organization_class.name, 'OpenDecisionAPI:class-with-no-source')
 
     def test_import_organization_class_with_simple_string_and_remapped_data_source(self):
         self.importer.config['rename_data_source'] = {'OpenDecisionAPI': 'remapped'}
@@ -297,6 +299,7 @@ class TestRestApiImporter(TestCase):
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.id, 'remapped:class-with-no-source')
+        self.assertEqual(organization_class.name, 'remapped:class-with-no-source')
 
     def test_import_organization_class_with_dict_data(self):
         data = {
@@ -536,6 +539,7 @@ class TestTprekRestApiImporter(TestRestApiImporter):
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.id, 'tprek:class-with-no-source')
+        self.assertEqual(organization_class.name, 'tprek:class-with-no-source')
 
     def test_import_organization_class_with_simple_string_and_remapped_data_source(self):
         self.importer.config['rename_data_source'] = {'tprek': 'remapped'}
@@ -545,6 +549,7 @@ class TestTprekRestApiImporter(TestRestApiImporter):
         qs = OrganizationClass.objects.all()
         self.assertQuerysetEqual(qs, [repr(organization_class)])
         self.assertEqual(organization_class.id, 'remapped:class-with-no-source')
+        self.assertEqual(organization_class.name, 'remapped:class-with-no-source')
 
     def test_import_organization_class_with_dict_data(self):
         pass

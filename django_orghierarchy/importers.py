@@ -1,6 +1,7 @@
 import copy
 import logging
 import re
+import warnings
 from enum import Enum
 
 import requests
@@ -55,6 +56,7 @@ class RestAPIImporter:
             in organization classes, if present.
         - update_fields: The fields to update if the organization with same origin_id and data
             source exists.
+        - deprecated: Is the configuration considered deprecated. Default False.
         - field_config: Configs for each field. Config options:
             - source_field: The source data object key where the field value comes from.
                 Defaults to original field name.
@@ -97,7 +99,9 @@ class RestAPIImporter:
         }
     """
 
+    # https://api.hel.fi/paatos/v1/organization/
     paatos_config = {
+        'deprecated': True,
         'next_key': 'next',
         'results_key': 'results',
         'fields': [
@@ -180,6 +184,12 @@ class RestAPIImporter:
             'classification': self._import_organization_class,
             'parent': self._import_organization,
         }
+
+        if self.config.get('deprecated', False):
+            warnings.warn(
+                'RestAPIImporter is initialized with a deprecated configuration.',
+                DeprecationWarning, stacklevel=2
+            )
 
         self._organization_classes = {}
         self._data_sources = {}

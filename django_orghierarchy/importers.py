@@ -1,6 +1,7 @@
 import copy
 import logging
 import re
+import urllib.parse
 import warnings
 from enum import Enum
 
@@ -69,6 +70,8 @@ class RestAPIImporter:
                 from the link; if the data type is 'regex', it will return the value extracted
                 from the given pattern. If the data type is 'org_id', it will return the organization
                 in the JSON with the given 'id'.
+            - unquote: Should the value be run through urllib.parse.unquote. Defaults to False.
+            - unwrap_list: Value is wrapped inside of a list. Return the first value on the list. Defaults to False.
             - optional: Whether the importer will continue if the field is missing.
                 Defaults to False.
         - rename_data_source: Data sources that are renamed during import.
@@ -500,7 +503,11 @@ class RestAPIImporter:
         try:
             value = data_item[source_field]
         except KeyError as e:
-            raise DataImportError('Field not found in source data: {0}'.format(source_field)) from e
+            raise DataImportError(f'Field not found in source data: {source_field}') from e
+
+        if config.get('unwrap_list') and not value and isinstance(value, list):
+            # Unwrap an empty list to avoid possible errors.
+            value = None
 
         if not value:
             return value
@@ -509,12 +516,22 @@ class RestAPIImporter:
             try:
                 data_type = DataType(config['data_type'])
             except ValueError:
-                raise DataImportError('Invalid data type: {0}. Supported data types are: {1}'.format(
-                    config['data_type'],
-                    ', '.join([e.value for e in DataType]),
-                ))
+                raise DataImportError(
+                    f'Invalid data type: {config["data_type"]}. '
+                    f'Supported data types are: {", ".join([e.value for e in DataType])}'
+                )
         else:
             data_type = DataType.VALUE
+
+        if config.get('unwrap_list'):
+            if len(value) > 1:
+                warnings.warn(
+                    'More than one value in the list, unwrap_list only unwraps the '
+                    'first value in the list.', UserWarning, stacklevel=2
+                )
+            value = value[0]
+        if config.get('unquote'):
+            value = urllib.parse.unquote(value)
 
         if data_type == DataType.STR_LOWER:
             value = str(value).lower()
@@ -544,7 +561,7 @@ class RestAPIImporter:
             data = match.group(1)
         else:
             raise DataImportError(
-                'Cannot extract value from string {0} with pattern {1}'.format(value, pattern)
+                f'Cannot extract value from string {value} with pattern {pattern}'
             )
         return data
 
@@ -554,7 +571,7 @@ class RestAPIImporter:
         try:
             validator(value)
         except ValidationError as e:
-            raise DataImportError('Invalid URL: {0}'.format(value)) from e
+            raise DataImportError(f'Invalid URL: {value}') from e
 
         r = requests.get(value, timeout=self.timeout)
 

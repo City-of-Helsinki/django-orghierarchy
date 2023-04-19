@@ -183,6 +183,7 @@ class RestAPIImporter:
 
         self._organization_classes = {}
         self._data_sources = {}
+        self._organizations = {}
         self._default_parent = None
         if self.config.get('default_parent_organization', None):
             origin_id_config = self.config['field_config'].get('origin_id', None)
@@ -309,6 +310,12 @@ class RestAPIImporter:
             raise DataImportError('Organization data must be dict.')
         origin_id = self._get_field_value(incoming_data, 'origin_id', config)
 
+        if origin_id in self._organizations:
+            # No need to re-import/update an organization which is already
+            # imported once in this run.
+            logger.debug(f'Using cached Organization: {origin_id}')
+            return self._organizations[origin_id]
+
         # data source may be missing altogether, or it may be optional
         data_source = None
         config = self.field_config.get('data_source') or {}
@@ -359,6 +366,8 @@ class RestAPIImporter:
             ):
                 organization.parent = self._default_parent
             organization.save()
+            logger.debug(f'Caching Organization: {origin_id}')
+            self._organizations[organization.origin_id] = organization
 
             return organization
         except Organization.DoesNotExist:
@@ -381,6 +390,8 @@ class RestAPIImporter:
             ):
                 organization.parent = self._default_parent
                 organization.save()
+            logger.debug(f'Caching Organization: {origin_id}')
+            self._organizations[origin_id] = organization
             return organization
 
     def _import_data_source(self, data):

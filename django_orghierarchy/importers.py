@@ -173,7 +173,7 @@ class RestAPIImporter:
                     merged_field_config[field] = default_field_config[field]
             self.config['field_config'] = merged_field_config
             self.config.update(config)
-        logger.info('Importing organization data from %s with the following config:' % self.url)
+        logger.info(f'Importing organization data from {self.url} with the following config:')
         logger.info(self.config)
         self.related_import_methods = {
             'data_source': self._import_data_source,
@@ -322,6 +322,8 @@ class RestAPIImporter:
             data_source = self._get_field_value(
                 {'data_source': self.default_data_source}, 'data_source', {'data_type': 'value'})
 
+        logger.debug(f'Importing Organization: {origin_id}')
+
         # id is never imported in default config
 
         try:
@@ -346,7 +348,7 @@ class RestAPIImporter:
             # processed, to get up to date status of the mptt tree before saving each organization.
             # enforce lower case id standard, but recognize upper case ids as equal:
             organization = Organization.objects.get(origin_id__iexact=origin_id, data_source=data_source)
-            logger.info('Organization already exists: {0}'.format(organization.id))
+            logger.info(f'Updating organization: {origin_id}')
             for field, value in values_to_update.items():
                 setattr(organization, field, value)
             if (
@@ -369,6 +371,7 @@ class RestAPIImporter:
                         continue
                     else:
                         raise
+            logger.info(f'Creating Organization: {origin_id}')
             organization = Organization.objects.create(**object_data)
             if (
                 self.config.get('default_parent_organization', None)
@@ -413,7 +416,7 @@ class RestAPIImporter:
 
         The iterator will follow over next page links if available.
         """
-        logger.info('Start reading data from {0} ...'.format(url))
+        logger.info(f'Start reading data from {url} ...')
 
         r = requests.get(url, timeout=self.timeout)
         try:
@@ -425,7 +428,7 @@ class RestAPIImporter:
         for data_item in data[self.results_key] if self.results_key else data:
             yield data_item
 
-        logger.info('Reading data from {0} completed'.format(url))
+        logger.info(f'Reading data from {url} completed')
 
         if self.next_key and data[self.next_key]:
             next_url = data[self.next_key]

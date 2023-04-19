@@ -166,13 +166,18 @@ class OrganizationAdmin(DraggableMPTTAdmin):
     form = OrganizationForm
     inlines = [ProtectedSubOrganizationInline, SubOrganizationInline, AddSubOrganizationInline,
                ProtectedAffiliatedOrganizationInline, AffiliatedOrganizationInline, AddAffiliatedOrganizationInline]
-    search_fields = ('name', )
+    search_fields = ('name', 'id', 'origin_id', 'classification__id')
+    list_display = (*DraggableMPTTAdmin.list_display, 'identifier', 'classification_id')
 
     # these fields may not be changed at all in existing organizations
     existing_readonly_fields = ('id', 'data_source', 'origin_id', 'internal_type')
     # these fields may not be changed at all in protected organizations
     protected_readonly_fields = existing_readonly_fields + ('origin_id', 'classification', 'name', 'founding_date',
                                                             'dissolution_date', 'parent',)
+
+    def identifier(self, obj):
+        # Disable sorting on this column
+        return obj.id
 
     def get_queryset(self, request):
         if not request.user.is_superuser:

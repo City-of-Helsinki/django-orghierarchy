@@ -26,58 +26,68 @@ class DataType(Enum):
     LINK = 'link'
     REGEX = 'regex'
     ORG_ID = 'org_id'
+    ORG_ID_REGEX = 'org_id_regex'
 
 
 class RestAPIImporter:
-    """This class allows importing organization data from a REST API endpoint. The default
-    configuration supports the 6aika Open Decision API specification:
+    """This class allows importing organization data from a REST API endpoint. The
+    default configuration supports the 6aika Open Decision API specification:
     https://github.com/6aika/api-paatos
 
-    The importer will also create data sources and organization classes if does not exist.
-    If a single value is provided to `data_source` and `classification` fields, then the
-    importer assumes the value is the name of the data source or organization class. If
-    an object (dict) is provided to `data_source` and `classification` fields, then the
-    importer will create objects with object data. Either full object data or a link to
-    full object data should be provided to parent field so that the importer can create
-    parent organization before creating child organization.
+    The importer will also create data sources and organization classes if does not
+    exist. If a single value is provided to `data_source` and `classification` fields,
+    then the importer assumes the value is the name of the data source or organization
+    class. If an object (dict) is provided to `data_source` and `classification` fields,
+    then the importer will create objects with object data. Either full object data or a
+    link to full object data should be provided to parent field so that the importer can
+    create parent organization before creating child organization.
 
-    For use in multi-source setups, the importer may optionally create a parent organization
-    for the data source that is the common parent of all imported top-level organizations.
-    This way, separate organization hierarchies from different data sources may be stored
-    in the same application.
+    For use in multi-source setups, the importer may optionally create a parent
+    organization for the data source that is the common parent of all imported top-level
+    organizations. This way, separate organization hierarchies from different data
+    sources may be stored in the same application.
 
     The client code can override the default config or pass in a config object to allow
     the importer parsing different REST API structures.
 
     Config options:
-        - next_key: The url to the next page if the source data is paginated, or None if not.
-        - results_key: The object key to the list of organization objects, or None if the list is at
-            root level.
-        - fields: The fields of which the values will be imported. The same fields will be imported
-            in organization classes, if present.
-        - update_fields: The fields to update if the organization with same origin_id and data
-            source exists.
+        - next_key: The url to the next page if the source data is paginated, or None if
+            not.
+        - results_key: The object key to the list of organization objects, or None if
+            the list is at root level.
+        - fields: The fields of which the values will be imported. The same fields will
+            be imported in organization classes, if present.
+        - update_fields: The fields to update if the organization with same origin_id
+            and data source exists.
         - skip_classifications: List of organization classifications which will cause
             organizations of this type to be skipped upon import.
+        - has_meta: Does the JSON contain a separate object for pagination. Default
+            False.
         - deprecated: Is the configuration considered deprecated. Default False.
         - field_config: Configs for each field. Config options:
             - source_field: The source data object key where the field value comes from.
                 Defaults to original field name.
-            - data_type: The data type for the field, can be 'value', 'str_lower', 'link', 'regex' or 'org_id'.
-                Defaults to 'value'. If the data type is 'value', it will return the value
-                from source data; if the data type is 'str_lower', it will return the value stringified
-                and lowercased; if the data type is 'link', it will return the data fetched
-                from the link; if the data type is 'regex', it will return the value extracted
-                from the given pattern. If the data type is 'org_id', it will return the organization
-                in the JSON with the given 'id'.
-            - unquote: Should the value be run through urllib.parse.unquote. Defaults to False.
-            - unwrap_list: Value is wrapped inside of a list. Return the first value on the list. Defaults to False.
+            - data_type: The data type for the field, can be 'value', 'str_lower',
+                'link', 'regex', 'org_id' or 'org_id_regex'.
+                Defaults to 'value'. If the data type is 'value', it will return the
+                value from source data; if the data type is 'str_lower', it will return
+                the value stringified and lowercased; if the data type is 'link', it
+                will return the data fetched from the link; if the data type is 'regex',
+                it will return the value extracted from the given pattern. If the data
+                type is 'org_id' or 'org_id_regex', it will return the organization in
+                the JSON with the given 'id'.
+            - pattern: The pattern to extract the value from the source data. Only used
+                when data_type is 'regex' or 'org_id_regex'.
+            - unquote: Should the value be run through urllib.parse.unquote. Defaults to
+                 False.
+            - unwrap_list: Value is wrapped inside of a list. Return the first value on
+                the list. Defaults to False.
             - optional: Whether the importer will continue if the field is missing.
                 Defaults to False.
         - rename_data_source: Data sources that are renamed during import.
         - default_data_source: Data source id to use for objects without data source.
-        - default_parent_organization: If set, name of the parent organization to be created for all
-            imported top level organizations.
+        - default_parent_organization: If set, name of the parent organization to be
+            created for all imported top level organizations.
 
     Example config:
         {
@@ -107,6 +117,7 @@ class RestAPIImporter:
     # https://api.hel.fi/paatos/v1/organization/
     paatos_config = {
         'deprecated': True,
+        'has_meta': False,
         'next_key': 'next',
         'results_key': 'results',
         'fields': [
@@ -124,12 +135,52 @@ class RestAPIImporter:
             },
             'origin_id': {
                 'data_type': 'str_lower',
-            }
+            },
         },
-        'default_data_source': 'OpenDecisionAPI'
+        'default_data_source': 'OpenDecisionAPI',
+    }
+
+    # https://dev.hel.fi/apis/openahjo
+    # https://dev.hel.fi/paatokset/v1/organization/
+    # https://github.com/City-of-Helsinki/openahjo
+    openahjo_config = {
+        'has_meta': True,
+        'next_key': 'next',
+        'results_key': 'objects',
+        'fields': [
+            'origin_id', 'classification',
+            'name', 'founding_date', 'dissolution_date',
+            'parent',
+        ],
+        'skip_classifications': ['office_holder', 'team', 'subteam', 'trustee'],
+        'update_fields': [
+            'classification', 'name', 'founding_date',
+            'dissolution_date', 'parent',
+        ],
+        'field_config': {
+            'name': {
+                'source_field': 'name_fi',
+            },
+            'classification': {
+                'source_field': 'type',
+            },
+            'parent': {
+                'source_field': 'parents',
+                'data_type': 'org_id_regex',
+                'unwrap_list': True,
+                'unquote': True,
+                'pattern': r"\/(\w+:\w+)\/$",
+                'optional': True,
+            },
+            'origin_id': {
+                'data_type': 'str_lower',
+            },
+        },
+        'default_data_source': 'OpenAhjoAPI',
     }
 
     tprek_config = {
+        'has_meta': False,
         'next_key': None,
         'results_key': None,
         'fields': [
@@ -156,10 +207,10 @@ class RestAPIImporter:
             'name': {
                 'source_field': 'name_fi',
                 'optional': True,
-            }
+            },
         },
         'default_data_source': 'tprek',
-        'default_parent_organization': 'Pääkaupunkiseudun toimipisterekisteri'
+        'default_parent_organization': 'Pääkaupunkiseudun toimipisterekisteri',
     }
 
     default_config = paatos_config
@@ -233,6 +284,11 @@ class RestAPIImporter:
         return self.config['field_config']
 
     @property
+    def has_meta(self):
+        """Whether the response contains a separate object for pagination."""
+        return self.config.get('has_meta', False)
+
+    @property
     def next_key(self):
         """Object key that stores the link to the next page"""
         return self.config['next_key']
@@ -256,6 +312,19 @@ class RestAPIImporter:
     def default_data_source(self):
         """Default data source string"""
         return self.config['default_data_source']
+
+    def _build_resource_url(self, resource_id) -> str:
+        """Build an url for the given resource id.
+
+        Resource identifiers in the data might be missing the scheme+host part.
+        With
+        - self.url = "https://dev.hel.fi/paatokset/v1/organization/" and
+        - resource_id = "/paatokset/v1/organization/?limit=20&offset=20"
+
+        the expected output is:
+        "https://dev.hel.fi/paatokset/v1/organization/?limit=20&offset=20"
+        """
+        return urllib.parse.urljoin(self.url, resource_id)
 
     def _get_organization_class(self, data):
         """Get organization class for the given object data
@@ -482,9 +551,14 @@ class RestAPIImporter:
 
         logger.info(f'Reading data from {url} completed')
 
-        if self.next_key and data[self.next_key]:
-            next_url = data[self.next_key]
-            yield from self._data_iter(next_url)
+        if self.next_key:
+            if self.has_meta:
+                next_page_url = data["meta"][self.next_key]
+            else:
+                next_page_url = data[self.next_key]
+
+            if next_page_url:
+                yield from self._data_iter(self._build_resource_url(next_page_url))
 
     def _get_field_value(self, data_item, field, config):
         """Get source value for the field from the data item
@@ -523,6 +597,9 @@ class RestAPIImporter:
         else:
             data_type = DataType.VALUE
 
+        if data_type in (DataType.REGEX, DataType.ORG_ID_REGEX) and not config.get('pattern'):
+            raise DataImportError(f'No regex pattern provided for the field: {field}')
+
         if config.get('unwrap_list'):
             if len(value) > 1:
                 warnings.warn(
@@ -537,14 +614,13 @@ class RestAPIImporter:
             value = str(value).lower()
         elif data_type == DataType.ORG_ID:
             value = self._data_dict.get(value, None)
+        elif data_type == DataType.ORG_ID_REGEX:
+            value = self._get_regex_data(value, config['pattern'])
+            value = self._data_dict.get(value, None)
         elif data_type == DataType.LINK:
             value = self._get_link_data(value)
         elif data_type == DataType.REGEX:
-            try:
-                pattern = config['pattern']
-            except KeyError as e:
-                raise DataImportError('No regex pattern provided for the field: {0}'.format(field)) from e
-            value = self._get_regex_data(value, pattern)
+            value = self._get_regex_data(value, config['pattern'])
 
         # import related objects
         if field in self.related_import_methods:

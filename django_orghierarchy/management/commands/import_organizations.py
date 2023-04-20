@@ -29,7 +29,7 @@ class Command(BaseCommand):
             '--config',
             dest='config',
             default='paatos',
-            choices=['paatos', 'tprek'],
+            choices=['paatos', 'tprek', 'openahjo'],
             help='REST API configuration to use when importing.'
         )
 

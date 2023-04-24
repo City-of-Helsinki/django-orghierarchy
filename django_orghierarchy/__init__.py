@@ -1,3 +1,3 @@
 default_app_config = 'django_orghierarchy.apps.DjangoOrghierarchyConfig'
 
-__version__ = '0.1.32'
+__version__ = '0.2.0'

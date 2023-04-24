@@ -6,29 +6,33 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='CustomDataSource',
+            name="CustomDataSource",
             fields=[
-                ('id', models.CharField(max_length=100, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('extra_field', models.CharField(max_length=200)),
+                (
+                    "id",
+                    models.CharField(max_length=100, primary_key=True, serialize=False),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("extra_field", models.CharField(max_length=200)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='CustomPrimaryKeyDataSource',
+            name="CustomPrimaryKeyDataSource",
             fields=[
-                ('id', models.CharField(max_length=100, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
+                (
+                    "id",
+                    models.CharField(max_length=100, primary_key=True, serialize=False),
+                ),
+                ("name", models.CharField(max_length=255)),
             ],
         ),
     ]

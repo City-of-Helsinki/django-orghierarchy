@@ -10,93 +10,186 @@ import swapper
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-        swapper.dependency('django_orghierarchy', 'DataSource')
-    ]
+    dependencies = [swapper.dependency("django_orghierarchy", "DataSource")]
 
     operations = [
         migrations.CreateModel(
-            name='DataSource',
+            name="DataSource",
             fields=[
-                ('id', models.CharField(max_length=100, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
+                (
+                    "id",
+                    models.CharField(max_length=100, primary_key=True, serialize=False),
+                ),
+                ("name", models.CharField(max_length=255)),
             ],
             options={
-                'swappable': swapper.swappable_setting('django_orghierarchy', 'DataSource'),
+                "swappable": swapper.swappable_setting(
+                    "django_orghierarchy", "DataSource"
+                ),
             },
         ),
         migrations.CreateModel(
-            name='Organization',
+            name="Organization",
             fields=[
-                ('id', models.CharField(editable=False, max_length=255, primary_key=True, serialize=False)),
-                ('origin_id', models.CharField(max_length=255, unique=True)),
-                ('name', models.CharField(help_text='A primary name, e.g. a legally recognized name', max_length=255)),
-                ('founding_date', models.DateField(blank=True, help_text='A date of founding', null=True)),
-                ('dissolution_date', models.DateField(blank=True, help_text='A date of dissolution', null=True)),
-                ('created_time', models.DateTimeField(auto_now_add=True, help_text='The time at which the resource was created')),
-                ('last_modified_time', models.DateTimeField(auto_now=True, help_text='The time at which the resource was updated')),
-                ('lft', models.PositiveIntegerField(db_index=True, editable=False)),
-                ('rght', models.PositiveIntegerField(db_index=True, editable=False)),
-                ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
-                ('level', models.PositiveIntegerField(db_index=True, editable=False)),
+                (
+                    "id",
+                    models.CharField(
+                        editable=False,
+                        max_length=255,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("origin_id", models.CharField(max_length=255, unique=True)),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="A primary name, e.g. a legally recognized name",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "founding_date",
+                    models.DateField(
+                        blank=True, help_text="A date of founding", null=True
+                    ),
+                ),
+                (
+                    "dissolution_date",
+                    models.DateField(
+                        blank=True, help_text="A date of dissolution", null=True
+                    ),
+                ),
+                (
+                    "created_time",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="The time at which the resource was created",
+                    ),
+                ),
+                (
+                    "last_modified_time",
+                    models.DateTimeField(
+                        auto_now=True,
+                        help_text="The time at which the resource was updated",
+                    ),
+                ),
+                ("lft", models.PositiveIntegerField(db_index=True, editable=False)),
+                ("rght", models.PositiveIntegerField(db_index=True, editable=False)),
+                ("tree_id", models.PositiveIntegerField(db_index=True, editable=False)),
+                ("level", models.PositiveIntegerField(db_index=True, editable=False)),
             ],
         ),
         migrations.CreateModel(
-            name='OrganizationClass',
+            name="OrganizationClass",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255, unique=True)),
             ],
             options={
-                'verbose_name_plural': 'Organization classes',
-                'verbose_name': 'Organization class',
+                "verbose_name_plural": "Organization classes",
+                "verbose_name": "Organization class",
             },
         ),
         migrations.AddField(
-            model_name='organization',
-            name='classification',
-            field=models.ForeignKey(blank=True, help_text='An organization category, e.g. committee', null=True, on_delete=django.db.models.deletion.PROTECT, to='django_orghierarchy.OrganizationClass'),
+            model_name="organization",
+            name="classification",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="An organization category, e.g. committee",
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                to="django_orghierarchy.OrganizationClass",
+            ),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='created_by',
-            field=models.ForeignKey(blank=True, editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='created_organizations', to=settings.AUTH_USER_MODEL),
+            model_name="organization",
+            name="created_by",
+            field=models.ForeignKey(
+                blank=True,
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="created_organizations",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='data_source',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=swapper.get_model_name('django_orghierarchy', 'DataSource')),
+            model_name="organization",
+            name="data_source",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=swapper.get_model_name("django_orghierarchy", "DataSource"),
+            ),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='last_modified_by',
-            field=models.ForeignKey(blank=True, editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='modified_organizations', to=settings.AUTH_USER_MODEL),
+            model_name="organization",
+            name="last_modified_by",
+            field=models.ForeignKey(
+                blank=True,
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="modified_organizations",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='parent',
-            field=mptt.fields.TreeForeignKey(blank=True, help_text='The organizations that contain this organization', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='django_orghierarchy.Organization'),
+            model_name="organization",
+            name="parent",
+            field=mptt.fields.TreeForeignKey(
+                blank=True,
+                help_text="The organizations that contain this organization",
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="children",
+                to="django_orghierarchy.Organization",
+            ),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='responsible_organization',
-            field=models.ForeignKey(blank=True, help_text='Responsible organization', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='affiliated_organization', to='django_orghierarchy.Organization'),
+            model_name="organization",
+            name="responsible_organization",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Responsible organization",
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="affiliated_organization",
+                to="django_orghierarchy.Organization",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='organization',
-            unique_together=set([('data_source', 'origin_id')]),
+            name="organization",
+            unique_together=set([("data_source", "origin_id")]),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='admin_users',
-            field=models.ManyToManyField(blank=True, related_name='admin_organizations', to=settings.AUTH_USER_MODEL),
+            model_name="organization",
+            name="admin_users",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="admin_organizations",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='regular_users',
-            field=models.ManyToManyField(blank=True, related_name='organization_memberships', to=settings.AUTH_USER_MODEL),
+            model_name="organization",
+            name="regular_users",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="organization_memberships",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

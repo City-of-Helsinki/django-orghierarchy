@@ -72,17 +72,16 @@ jobs:
       - name: Build
         run: python -m build .
 
-  # TODO to be enabled later
-  #black:
-  #  name: Coding style - black
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - name: Checkout
-  #      uses: actions/checkout@v3
-  #    - name: Run black
-  #      uses: psf/black@stable
-  #      with:
-  #        args: ". --check"
+  black:
+    name: Coding style - black
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run black
+        uses: psf/black@stable
+        with:
+          options: "--check"
 
   flake8:
     name: Coding style - flake8

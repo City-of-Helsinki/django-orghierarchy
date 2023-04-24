@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('django_orghierarchy', '0010_rename_user_editable'),
+        ("django_orghierarchy", "0010_rename_user_editable"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='datasource',
-            name='user_editable_organizations',
-            field=models.BooleanField(default=False, verbose_name='Organizations may be edited by users'),
+            model_name="datasource",
+            name="user_editable_organizations",
+            field=models.BooleanField(
+                default=False, verbose_name="Organizations may be edited by users"
+            ),
         ),
     ]

@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('test_app', '0001_initial'),
+        ("test_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='customdatasource',
-            name='user_editable_organizations',
-            field=models.BooleanField(default=False, verbose_name='Organizations may be edited by users'),
+            model_name="customdatasource",
+            name="user_editable_organizations",
+            field=models.BooleanField(
+                default=False, verbose_name="Organizations may be edited by users"
+            ),
         ),
     ]

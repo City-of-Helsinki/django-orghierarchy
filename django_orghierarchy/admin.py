@@ -23,6 +23,7 @@ if data_source_model == 'django_orghierarchy.DataSource':
 @admin.register(OrganizationClass)
 class OrganizationClassAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    list_filter = ('data_source',)
 
 
 class SubOrganizationInline(admin.TabularInline):
@@ -168,6 +169,7 @@ class OrganizationAdmin(DraggableMPTTAdmin):
                ProtectedAffiliatedOrganizationInline, AffiliatedOrganizationInline, AddAffiliatedOrganizationInline]
     search_fields = ('name', 'id', 'origin_id', 'classification__id')
     list_display = (*DraggableMPTTAdmin.list_display, 'identifier', 'classification_id')
+    list_filter = ('data_source',)
 
     # these fields may not be changed at all in existing organizations
     existing_readonly_fields = ('id', 'data_source', 'origin_id', 'internal_type')

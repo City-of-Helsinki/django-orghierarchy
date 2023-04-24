@@ -29,7 +29,7 @@ You may import an existing organization hierarchy from a REST API corresponding 
 ```bash
 python manage.py import_organizations "https://api.hel.fi/paatos/v1/organization/"
 ```
-    
+
 You may give the organization data source a specific id to correspond to your own data source model ids in your project:
 ```bash
 python manage.py import_organizations "https://api.hel.fi/paatos/v1/organization/" -s original_id:imported_id
@@ -66,7 +66,7 @@ Run the tests with coverage report.
 ```bash
 pytest --cov-report html --cov .
 ```
-    
+
 Open htmlcov/index.html for the coverage report.
 
 
@@ -100,6 +100,25 @@ Run the integration tests.
 pytest -m custom_ds --ds=tests.test_app.settings_custom_ds
 pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds
 ```
+
+
+## Code format
+
+This project uses
+[`black`](https://github.com/ambv/black),
+[`flake8`](https://github.com/pycqa/flake8) and
+[`isort`](https://github.com/timothycrosley/isort)
+for code formatting and quality checking. Project follows the basic
+black config, without any modifications.
+
+Basic `black` commands:
+
+* To let `black` do its magic: `black .`
+* To see which files `black` would change: `black --check .`
+
+[`pre-commit`](https://pre-commit.com/) can be used to install and
+run all the formatting tools as git hooks automatically before a
+commit.
 
 
 ## Git blame ignore refs

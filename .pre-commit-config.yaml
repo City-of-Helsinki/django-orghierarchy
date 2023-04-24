@@ -9,11 +9,10 @@ repos:
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
-# TODO to be enabled later
-#  - repo: https://github.com/psf/black
-#    rev: 23.3.0
-#    hooks:
-#      - id: black
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:

@@ -100,3 +100,15 @@ Run the integration tests.
 pytest -m custom_ds --ds=tests.test_app.settings_custom_ds
 pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds
 ```
+
+
+## Git blame ignore refs
+
+Project includes a `.git-blame-ignore-revs` file for ignoring certain commits from `git blame`.
+This can be useful for ignoring e.g. formatting commits, so that it is more clear from `git blame`
+where the actual code change came from. Configure your git to use it for this project with the
+following command:
+
+```shell
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```

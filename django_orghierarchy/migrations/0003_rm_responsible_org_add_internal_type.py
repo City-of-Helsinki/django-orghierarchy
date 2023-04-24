@@ -6,19 +6,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('django_orghierarchy', '0002_organization_replaced_by'),
+        ("django_orghierarchy", "0002_organization_replaced_by"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='organization',
-            name='responsible_organization',
+            model_name="organization",
+            name="responsible_organization",
         ),
         migrations.AddField(
-            model_name='organization',
-            name='internal_type',
-            field=models.CharField(choices=[('normal', 'Normal organization'), ('affiliated', 'Affiliated organization')], default='normal', max_length=20),
+            model_name="organization",
+            name="internal_type",
+            field=models.CharField(
+                choices=[
+                    ("normal", "Normal organization"),
+                    ("affiliated", "Affiliated organization"),
+                ],
+                default="normal",
+                max_length=20,
+            ),
         ),
     ]

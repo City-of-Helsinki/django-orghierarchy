@@ -4,14 +4,33 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('django_orghierarchy', '0008_modify_organization_on_deletes'),
+        ("django_orghierarchy", "0008_modify_organization_on_deletes"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='organization',
-            options={'permissions': (('add_affiliated_organization', 'Can add affiliated organization'), ('change_affiliated_organization', 'Can change affiliated organization'), ('delete_affiliated_organization', 'Can delete affiliated organization'), ('replace_organization', 'Can replace an organization with a new one'), ('change_organization_regular_users', 'Can add/remove regular users to organizations'))},
+            name="organization",
+            options={
+                "permissions": (
+                    ("add_affiliated_organization", "Can add affiliated organization"),
+                    (
+                        "change_affiliated_organization",
+                        "Can change affiliated organization",
+                    ),
+                    (
+                        "delete_affiliated_organization",
+                        "Can delete affiliated organization",
+                    ),
+                    (
+                        "replace_organization",
+                        "Can replace an organization with a new one",
+                    ),
+                    (
+                        "change_organization_regular_users",
+                        "Can add/remove regular users to organizations",
+                    ),
+                )
+            },
         ),
     ]

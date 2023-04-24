@@ -7,7 +7,7 @@ class CustomDataSource(AbstractDataSource):
     extra_field = models.CharField(max_length=200)
 
     class Meta:
-        app_label = 'test_app'
+        app_label = "test_app"
 
 
 class CustomPrimaryKeyDataSource(models.Model):
@@ -15,4 +15,4 @@ class CustomPrimaryKeyDataSource(models.Model):
     name = models.CharField(max_length=255)
 
     class Meta:
-        app_label = 'test_app'
+        app_label = "test_app"

@@ -21,12 +21,12 @@ class DataImportError(Exception):
 
 
 class DataType(Enum):
-    VALUE = 'value'
-    STR_LOWER = 'str_lower'
-    LINK = 'link'
-    REGEX = 'regex'
-    ORG_ID = 'org_id'
-    ORG_ID_REGEX = 'org_id_regex'
+    VALUE = "value"
+    STR_LOWER = "str_lower"
+    LINK = "link"
+    REGEX = "regex"
+    ORG_ID = "org_id"
+    ORG_ID_REGEX = "org_id_regex"
 
 
 class RestAPIImporter:
@@ -116,101 +116,118 @@ class RestAPIImporter:
 
     # https://api.hel.fi/paatos/v1/organization/
     paatos_config = {
-        'deprecated': True,
-        'has_meta': False,
-        'next_key': 'next',
-        'results_key': 'results',
-        'fields': [
-            'data_source', 'origin_id', 'classification',
-            'name', 'founding_date', 'dissolution_date',
-            'parent',
+        "deprecated": True,
+        "has_meta": False,
+        "next_key": "next",
+        "results_key": "results",
+        "fields": [
+            "data_source",
+            "origin_id",
+            "classification",
+            "name",
+            "founding_date",
+            "dissolution_date",
+            "parent",
         ],
-        'update_fields': [
-            'classification', 'name', 'founding_date',
-            'dissolution_date', 'parent',
+        "update_fields": [
+            "classification",
+            "name",
+            "founding_date",
+            "dissolution_date",
+            "parent",
         ],
-        'field_config': {
-            'parent': {
-                'data_type': 'link',
+        "field_config": {
+            "parent": {
+                "data_type": "link",
             },
-            'origin_id': {
-                'data_type': 'str_lower',
+            "origin_id": {
+                "data_type": "str_lower",
             },
         },
-        'default_data_source': 'OpenDecisionAPI',
+        "default_data_source": "OpenDecisionAPI",
     }
 
     # https://dev.hel.fi/apis/openahjo
     # https://dev.hel.fi/paatokset/v1/organization/
     # https://github.com/City-of-Helsinki/openahjo
     openahjo_config = {
-        'has_meta': True,
-        'next_key': 'next',
-        'results_key': 'objects',
-        'fields': [
-            'origin_id', 'classification',
-            'name', 'founding_date', 'dissolution_date',
-            'parent',
+        "has_meta": True,
+        "next_key": "next",
+        "results_key": "objects",
+        "fields": [
+            "origin_id",
+            "classification",
+            "name",
+            "founding_date",
+            "dissolution_date",
+            "parent",
         ],
-        'skip_classifications': ['office_holder', 'team', 'subteam', 'trustee'],
-        'update_fields': [
-            'classification', 'name', 'founding_date',
-            'dissolution_date', 'parent',
+        "skip_classifications": ["office_holder", "team", "subteam", "trustee"],
+        "update_fields": [
+            "classification",
+            "name",
+            "founding_date",
+            "dissolution_date",
+            "parent",
         ],
-        'field_config': {
-            'name': {
-                'source_field': 'name_fi',
+        "field_config": {
+            "name": {
+                "source_field": "name_fi",
             },
-            'classification': {
-                'source_field': 'type',
+            "classification": {
+                "source_field": "type",
             },
-            'parent': {
-                'source_field': 'parents',
-                'data_type': 'org_id_regex',
-                'unwrap_list': True,
-                'unquote': True,
-                'pattern': r"\/(\w+:\w+)\/$",
-                'optional': True,
+            "parent": {
+                "source_field": "parents",
+                "data_type": "org_id_regex",
+                "unwrap_list": True,
+                "unquote": True,
+                "pattern": r"\/(\w+:\w+)\/$",
+                "optional": True,
             },
-            'origin_id': {
-                'data_type': 'str_lower',
+            "origin_id": {
+                "data_type": "str_lower",
             },
         },
-        'default_data_source': 'OpenAhjoAPI',
+        "default_data_source": "OpenAhjoAPI",
     }
 
     tprek_config = {
-        'has_meta': False,
-        'next_key': None,
-        'results_key': None,
-        'fields': [
-            'origin_id', 'classification',
-            'name', 'parent',
+        "has_meta": False,
+        "next_key": None,
+        "results_key": None,
+        "fields": [
+            "origin_id",
+            "classification",
+            "name",
+            "parent",
         ],
-        'update_fields': [
-            'classification', 'name', 'parent',
+        "update_fields": [
+            "classification",
+            "name",
+            "parent",
         ],
-        'field_config': {
-            'parent': {
-                'source_field': 'parent_id',
-                'data_type': 'org_id',
-                'optional': True,
+        "field_config": {
+            "parent": {
+                "source_field": "parent_id",
+                "data_type": "org_id",
+                "optional": True,
             },
-            'origin_id': {
-                'source_field': 'id',
-                'data_type': 'value',
+            "origin_id": {
+                "source_field": "id",
+                "data_type": "value",
             },
-            'classification': {
-                'source_field': 'organization_type',
-                'optional': True,
+            "classification": {
+                "source_field": "organization_type",
+                "optional": True,
             },
-            'name': {
-                'source_field': 'name_fi',
-                'optional': True,
+            "name": {
+                "source_field": "name_fi",
+                "optional": True,
             },
         },
-        'default_data_source': 'tprek',
-        'default_parent_organization': 'Pääkaupunkiseudun toimipisterekisteri',
+        "default_data_source": "tprek",
+        "default_parent_organization": "Pääkaupunkiseudun toimipisterekisteri",
     }
 
     default_config = paatos_config
@@ -223,45 +240,54 @@ class RestAPIImporter:
         config = copy.deepcopy(config)
         if config:
             # only consider fields listed in given config when merging field configs
-            default_field_config = self.config.pop('field_config')
-            given_field_config = config.pop('field_config')
+            default_field_config = self.config.pop("field_config")
+            given_field_config = config.pop("field_config")
             merged_field_config = {}
-            for field in config.get('fields', None):
+            for field in config.get("fields", None):
                 if field in given_field_config:
                     merged_field_config[field] = given_field_config[field]
                 elif field in default_field_config:
                     merged_field_config[field] = default_field_config[field]
-            self.config['field_config'] = merged_field_config
+            self.config["field_config"] = merged_field_config
             self.config.update(config)
-        logger.info(f'Importing organization data from {self.url} with the following config:')
+        logger.info(
+            f"Importing organization data from {self.url} with the following config:"
+        )
         logger.info(self.config)
         self.related_import_methods = {
-            'data_source': self._import_data_source,
-            'classification': self._import_organization_class,
-            'parent': self._import_organization,
+            "data_source": self._import_data_source,
+            "classification": self._import_organization_class,
+            "parent": self._import_organization,
         }
 
-        if self.config.get('deprecated', False):
+        if self.config.get("deprecated", False):
             warnings.warn(
-                'RestAPIImporter is initialized with a deprecated configuration.',
-                DeprecationWarning, stacklevel=2
+                "RestAPIImporter is initialized with a deprecated configuration.",
+                DeprecationWarning,
+                stacklevel=2,
             )
 
         self._organization_classes = {}
         self._data_sources = {}
         self._organizations = {}
         self._default_parent = None
-        if self.config.get('default_parent_organization', None):
-            origin_id_config = self.config['field_config'].get('origin_id', None)
-            origin_id_field = origin_id_config['source_field'] if origin_id_config else 'origin_id'
-            data_source_config = self.config['field_config'].get('data_source', None)
-            data_source_field = data_source_config['source_field'] if data_source_config else 'data_source'
-            name_config = self.config['field_config'].get('name', None)
-            name_field = name_config['source_field'] if name_config else 'name'
+        if self.config.get("default_parent_organization", None):
+            origin_id_config = self.config["field_config"].get("origin_id", None)
+            origin_id_field = (
+                origin_id_config["source_field"] if origin_id_config else "origin_id"
+            )
+            data_source_config = self.config["field_config"].get("data_source", None)
+            data_source_field = (
+                data_source_config["source_field"]
+                if data_source_config
+                else "data_source"
+            )
+            name_config = self.config["field_config"].get("name", None)
+            name_field = name_config["source_field"] if name_config else "name"
             default_parent_data = {
-                origin_id_field: self.config['default_data_source'],
-                data_source_field: self.config['default_data_source'],
-                name_field: self.config['default_parent_organization']
+                origin_id_field: self.config["default_data_source"],
+                data_source_field: self.config["default_data_source"],
+                name_field: self.config["default_parent_organization"],
             }
             self._default_parent = self._import_organization(default_parent_data)
         # Save all the data from the REST endpoint in a single dict.
@@ -273,45 +299,45 @@ class RestAPIImporter:
 
     @property
     def fields(self):
-        return self.config['fields']
+        return self.config["fields"]
 
     @property
     def update_fields(self):
-        return self.config['update_fields']
+        return self.config["update_fields"]
 
     @property
     def field_config(self):
-        return self.config['field_config']
+        return self.config["field_config"]
 
     @property
     def has_meta(self):
         """Whether the response contains a separate object for pagination."""
-        return self.config.get('has_meta', False)
+        return self.config.get("has_meta", False)
 
     @property
     def next_key(self):
         """Object key that stores the link to the next page"""
-        return self.config['next_key']
+        return self.config["next_key"]
 
     @property
     def results_key(self):
         """Object key that stores the list of organizations"""
-        return self.config['results_key']
+        return self.config["results_key"]
 
     @property
     def rename_data_source(self):
         """Data source renaming configs"""
-        return self.config.get('rename_data_source') or {}
+        return self.config.get("rename_data_source") or {}
 
     @property
     def skip_classifications(self):
         """List of organization classifications to skip"""
-        return self.config.get('skip_classifications') or []
+        return self.config.get("skip_classifications") or []
 
     @property
     def default_data_source(self):
         """Default data source string"""
-        return self.config['default_data_source']
+        return self.config["default_data_source"]
 
     def _build_resource_url(self, resource_id) -> str:
         """Build an url for the given resource id.
@@ -333,30 +359,36 @@ class RestAPIImporter:
         then get from database if not cached.
         """
         # organization class supports id, data_source, origin_id and name.
-        supported_fields = {'id', 'origin_id', 'data_source', 'name'}
-        identifier = data.get('id')
+        supported_fields = {"id", "origin_id", "data_source", "name"}
+        identifier = data.get("id")
         # organization class requires data source and origin_id.
-        if isinstance(identifier, str) and ':' in identifier:
-            if 'data_source' not in data:
-                data['data_source'] = identifier.split(':')[0]
-            if 'origin_id' not in data:
-                data['origin_id'] = identifier.split(':')[1]
+        if isinstance(identifier, str) and ":" in identifier:
+            if "data_source" not in data:
+                data["data_source"] = identifier.split(":")[0]
+            if "origin_id" not in data:
+                data["origin_id"] = identifier.split(":")[1]
         # provided id used if origin id missing
-        if 'origin_id' not in data or not data['origin_id']:
-            data['origin_id'] = identifier
+        if "origin_id" not in data or not data["origin_id"]:
+            data["origin_id"] = identifier
         # default data source used if missing
-        if 'data_source' not in data or not data['data_source']:
-            data['data_source'] = self.default_data_source
-        data_source_instance = self.related_import_methods['data_source'](data['data_source'])
+        if "data_source" not in data or not data["data_source"]:
+            data["data_source"] = self.default_data_source
+        data_source_instance = self.related_import_methods["data_source"](
+            data["data_source"]
+        )
         # reformat id to fit our model
-        if not isinstance(identifier, str) or ':' not in identifier:
-            data['id'] = data_source_instance.pk + ':' + str(identifier)
-        data['data_source'] = data_source_instance
+        if not isinstance(identifier, str) or ":" not in identifier:
+            data["id"] = data_source_instance.pk + ":" + str(identifier)
+        data["data_source"] = data_source_instance
         # extra fields should not crash the import. Only use specified fields.
-        data = {field: value for (field, value) in data.items() if field in supported_fields}
+        data = {
+            field: value for (field, value) in data.items() if field in supported_fields
+        }
         if identifier not in self._organization_classes:
-            defaults = {'name': data.pop('name', data['id'])}
-            organization_class, _ = OrganizationClass.objects.get_or_create(**data, defaults=defaults)
+            defaults = {"name": data.pop("name", data["id"])}
+            organization_class, _ = OrganizationClass.objects.get_or_create(
+                **data, defaults=defaults
+            )
             self._organization_classes[identifier] = organization_class
         return self._organization_classes[identifier]
 
@@ -366,11 +398,11 @@ class RestAPIImporter:
         The method will first try to get the data source from cache, and
         then get from database if not cached.
         """
-        identifier = data['id']
+        identifier = data["id"]
 
         if identifier in self.rename_data_source:
             identifier = self.rename_data_source[identifier]
-            data['id'] = identifier
+            data["id"] = identifier
 
         if identifier not in self._data_sources:
             data_source_model = get_data_source_model()
@@ -392,41 +424,48 @@ class RestAPIImporter:
         saving failed for some reason.
         """
         # id must always be present
-        config = self.field_config.get('origin_id') or {}
+        config = self.field_config.get("origin_id") or {}
         if isinstance(data, dict):
             incoming_data = data
         else:
-            raise DataImportError('Organization data must be dict.')
-        origin_id = self._get_field_value(incoming_data, 'origin_id', config)
+            raise DataImportError("Organization data must be dict.")
+        origin_id = self._get_field_value(incoming_data, "origin_id", config)
 
         if origin_id in self._organizations:
             # No need to re-import/update an organization which is already
             # imported once in this run.
-            logger.debug(f'Using cached Organization: {origin_id}')
+            logger.debug(f"Using cached Organization: {origin_id}")
             return self._organizations[origin_id]
 
         # data source may be missing altogether, or it may be optional
         data_source = None
-        config = self.field_config.get('data_source') or {}
+        config = self.field_config.get("data_source") or {}
         try:
-            data_source = self._get_field_value(incoming_data, 'data_source', config)
+            data_source = self._get_field_value(incoming_data, "data_source", config)
         except DataImportError:
-            if not config or config.get('optional'):
+            if not config or config.get("optional"):
                 pass
             else:
                 raise
         if not data_source:
             data_source = self._get_field_value(
-                {'data_source': self.default_data_source}, 'data_source', {'data_type': 'value'})
+                {"data_source": self.default_data_source},
+                "data_source",
+                {"data_type": "value"},
+            )
 
-        logger.debug(f'Importing Organization: {origin_id}')
+        logger.debug(f"Importing Organization: {origin_id}")
 
         # id is never imported in default config
 
         try:
-            return self._import_organization_update(incoming_data, origin_id, data_source)
+            return self._import_organization_update(
+                incoming_data, origin_id, data_source
+            )
         except Organization.DoesNotExist:
-            return self._import_organization_create(incoming_data, origin_id, data_source)
+            return self._import_organization_create(
+                incoming_data, origin_id, data_source
+            )
 
     def _import_organization_update(self, incoming_data, origin_id, data_source):
         """Update an existing organization upon import."""
@@ -436,7 +475,7 @@ class RestAPIImporter:
             try:
                 value = self._get_field_value(incoming_data, field, config)
             except DataImportError:
-                if config.get('optional'):
+                if config.get("optional"):
                     continue
                 else:
                     raise
@@ -450,55 +489,56 @@ class RestAPIImporter:
         # Therefore, we may only fetch the organization from the db *after* all its parents have been
         # processed, to get up-to-date status of the mptt tree before saving each organization.
         # enforce lower case id standard, but recognize upper case ids as equal:
-        organization = Organization.objects.get(origin_id__iexact=origin_id,
-                                                data_source=data_source)
-        logger.info(f'Updating organization: {origin_id}')
+        organization = Organization.objects.get(
+            origin_id__iexact=origin_id, data_source=data_source
+        )
+        logger.info(f"Updating organization: {origin_id}")
         for field, value in values_to_update.items():
             setattr(organization, field, value)
         if (
-            self.config.get('default_parent_organization', None)
+            self.config.get("default_parent_organization", None)
             and not organization.parent
             and organization != self._default_parent
         ):
             organization.parent = self._default_parent
         organization.save()
-        logger.debug(f'Caching Organization: {origin_id}')
+        logger.debug(f"Caching Organization: {origin_id}")
         self._organizations[organization.origin_id] = organization
 
         return organization
 
     def _import_organization_create(self, incoming_data, origin_id, data_source):
         """Create a new Organization instance upon import."""
-        object_data = {'origin_id': origin_id, 'data_source': data_source}
+        object_data = {"origin_id": origin_id, "data_source": data_source}
         for field in self.fields:
             config = self.field_config.get(field) or {}
             try:
                 object_data[field] = self._get_field_value(incoming_data, field, config)
             except DataImportError:
-                if config.get('optional'):
+                if config.get("optional"):
                     continue
                 else:
                     raise
 
         # Check if we're supposed to skip importing organizations of this class
-        classification = object_data.get('classification')
+        classification = object_data.get("classification")
         if classification and classification.origin_id in self.skip_classifications:
             self._organizations[origin_id] = None
             logger.info(
-                f'Skipping organization: {origin_id} with type: {classification}'
+                f"Skipping organization: {origin_id} with type: {classification}"
             )
             return None
 
-        logger.info(f'Creating Organization: {origin_id}')
+        logger.info(f"Creating Organization: {origin_id}")
         organization = Organization.objects.create(**object_data)
         if (
-            self.config.get('default_parent_organization', None)
+            self.config.get("default_parent_organization", None)
             and not organization.parent
             and organization != self._default_parent
         ):
             organization.parent = self._default_parent
             organization.save()
-        logger.debug(f'Caching Organization: {origin_id}')
+        logger.debug(f"Caching Organization: {origin_id}")
         self._organizations[origin_id] = organization
 
         return organization
@@ -512,7 +552,7 @@ class RestAPIImporter:
         if isinstance(data, dict):
             object_data = data
         else:
-            object_data = {'id': data}
+            object_data = {"id": data}
 
         return self._get_data_source(object_data)
 
@@ -525,10 +565,10 @@ class RestAPIImporter:
         If a dict is provided, origin_id is used if present, otherwise id.
         """
         if isinstance(data, dict):
-            object_data = {k: v for k, v in data.items() if k != 'id'}
-            object_data['id'] = data['origin_id'] if 'origin_id' in data else data['id']
+            object_data = {k: v for k, v in data.items() if k != "id"}
+            object_data["id"] = data["origin_id"] if "origin_id" in data else data["id"]
         else:
-            object_data = {'id': data}
+            object_data = {"id": data}
 
         return self._get_organization_class(object_data)
 
@@ -537,7 +577,7 @@ class RestAPIImporter:
 
         The iterator will follow over next page links if available.
         """
-        logger.info(f'Start reading data from {url} ...')
+        logger.info(f"Start reading data from {url} ...")
 
         r = requests.get(url, timeout=self.timeout)
         try:
@@ -549,7 +589,7 @@ class RestAPIImporter:
         for data_item in data[self.results_key] if self.results_key else data:
             yield data_item
 
-        logger.info(f'Reading data from {url} completed')
+        logger.info(f"Reading data from {url} completed")
 
         if self.next_key:
             if self.has_meta:
@@ -573,22 +613,24 @@ class RestAPIImporter:
         If the data type is DataType.LINK, the data in the link will be returned;
         If the data type is DataType.REGEX, the extracted value for the pattern will be returned.
         """
-        source_field = config.get('source_field') or field
+        source_field = config.get("source_field") or field
         try:
             value = data_item[source_field]
         except KeyError as e:
-            raise DataImportError(f'Field not found in source data: {source_field}') from e
+            raise DataImportError(
+                f"Field not found in source data: {source_field}"
+            ) from e
 
-        if config.get('unwrap_list') and not value and isinstance(value, list):
+        if config.get("unwrap_list") and not value and isinstance(value, list):
             # Unwrap an empty list to avoid possible errors.
             value = None
 
         if not value:
             return value
 
-        if config.get('data_type'):
+        if config.get("data_type"):
             try:
-                data_type = DataType(config['data_type'])
+                data_type = DataType(config["data_type"])
             except ValueError:
                 raise DataImportError(
                     f'Invalid data type: {config["data_type"]}. '
@@ -597,17 +639,21 @@ class RestAPIImporter:
         else:
             data_type = DataType.VALUE
 
-        if data_type in (DataType.REGEX, DataType.ORG_ID_REGEX) and not config.get('pattern'):
-            raise DataImportError(f'No regex pattern provided for the field: {field}')
+        if data_type in (DataType.REGEX, DataType.ORG_ID_REGEX) and not config.get(
+            "pattern"
+        ):
+            raise DataImportError(f"No regex pattern provided for the field: {field}")
 
-        if config.get('unwrap_list'):
+        if config.get("unwrap_list"):
             if len(value) > 1:
                 warnings.warn(
-                    'More than one value in the list, unwrap_list only unwraps the '
-                    'first value in the list.', UserWarning, stacklevel=2
+                    "More than one value in the list, unwrap_list only unwraps the "
+                    "first value in the list.",
+                    UserWarning,
+                    stacklevel=2,
                 )
             value = value[0]
-        if config.get('unquote'):
+        if config.get("unquote"):
             value = urllib.parse.unquote(value)
 
         if data_type == DataType.STR_LOWER:
@@ -615,12 +661,12 @@ class RestAPIImporter:
         elif data_type == DataType.ORG_ID:
             value = self._data_dict.get(value, None)
         elif data_type == DataType.ORG_ID_REGEX:
-            value = self._get_regex_data(value, config['pattern'])
+            value = self._get_regex_data(value, config["pattern"])
             value = self._data_dict.get(value, None)
         elif data_type == DataType.LINK:
             value = self._get_link_data(value)
         elif data_type == DataType.REGEX:
-            value = self._get_regex_data(value, config['pattern'])
+            value = self._get_regex_data(value, config["pattern"])
 
         # import related objects
         if field in self.related_import_methods:
@@ -637,7 +683,7 @@ class RestAPIImporter:
             data = match.group(1)
         else:
             raise DataImportError(
-                f'Cannot extract value from string {value} with pattern {pattern}'
+                f"Cannot extract value from string {value} with pattern {pattern}"
             )
         return data
 
@@ -647,7 +693,7 @@ class RestAPIImporter:
         try:
             validator(value)
         except ValidationError as e:
-            raise DataImportError(f'Invalid URL: {value}') from e
+            raise DataImportError(f"Invalid URL: {value}") from e
 
         r = requests.get(value, timeout=self.timeout)
 

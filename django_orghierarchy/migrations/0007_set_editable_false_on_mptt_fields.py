@@ -6,25 +6,24 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('django_orghierarchy', '0006_add_user_editable_to_data_source'),
+        ("django_orghierarchy", "0006_add_user_editable_to_data_source"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='organization',
-            name='level',
+            model_name="organization",
+            name="level",
             field=models.PositiveIntegerField(editable=False),
         ),
         migrations.AlterField(
-            model_name='organization',
-            name='lft',
+            model_name="organization",
+            name="lft",
             field=models.PositiveIntegerField(editable=False),
         ),
         migrations.AlterField(
-            model_name='organization',
-            name='rght',
+            model_name="organization",
+            name="rght",
             field=models.PositiveIntegerField(editable=False),
         ),
     ]

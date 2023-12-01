@@ -14,17 +14,16 @@ on:
 jobs:
   test:
     name: Python ${{ matrix.python_version }}
-    # Ubuntu 20.04 is required for Python 3.6; can change to ubuntu-latest when dropping support for Python 3.6
-    runs-on: ${{ fromJSON('["ubuntu-latest", "ubuntu-20.04"]')[matrix.python_version == '3.6'] }}
+    runs-on: ubuntu-latest
     env:
       TOX_POSARGS: -- --cov=. --cov-report=xml -ra -vv
     strategy:
       matrix:
-        python_version: ['3.6', '3.7', '3.8', '3.9']
+        python_version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -38,30 +37,19 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --upgrade codecov tox
 
-      # Python 3.6 doesn't have tox4, so we need to install tox-py to imitate -f
-      - name: Install tox-py for Python 3.6
-        if: ${{ matrix.python_version == '3.6' }}
-        run: python -m pip install --upgrade tox-py
-
-      - name: Run tox targets for Python >=3.7 (currently ${{ matrix.python_version }})
-        if: ${{ matrix.python_version != '3.6' }}
+      - name: Run tox targets for Python ${{ matrix.python_version }}
         run: tox run -f py$(echo ${{ matrix.python_version }} | tr -d .) ${{ env.TOX_POSARGS }}
-
-      - name: Run tox targets for Python 3.6 (currently ${{ matrix.python_version }})
-        if: ${{ matrix.python_version == '3.6' }}
-        run: tox --py current ${{ env.TOX_POSARGS }}
 
       - name: Upload Coverage to Codecov
         if: ${{ matrix.python_version == env.DEFAULT_PYTHON }}
         uses: codecov/codecov-action@v3
-
 
   build:
     name: Build package
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -77,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run black
         uses: psf/black@stable
         with:
@@ -88,11 +76,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: ${{ env.DEFAULT_PYTHON }}
 
       - name: Install dependencies
         run: pip install flake8 pep8-naming flake8-bugbear
@@ -107,11 +95,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: ${{ env.DEFAULT_PYTHON }}
 
       - name: Install dependencies
         run: pip install isort

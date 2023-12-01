@@ -44,7 +44,7 @@ class TestSubOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = sub_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.editable_org)])
+        self.assertQuerysetEqual(qs, [self.editable_org])
 
     def test_has_add_permission(self):
         sub_org_inline = SubOrganizationInline(Organization, self.site)
@@ -96,11 +96,11 @@ class TestSubOrganizationInline(TestCase):
         request = self.factory.get("/fake-url/")
         request.user = self.admin
 
-        self.assertEquals(
+        self.assertEqual(
             ("data_source", "origin_id", "id"),
             sub_org_inline.get_readonly_fields(request),
         )
-        self.assertEquals(
+        self.assertEqual(
             ("data_source", "origin_id", "id"),
             sub_org_inline.get_readonly_fields(request, obj=self.editable_org),
         )
@@ -176,8 +176,8 @@ class TestAddSubOrganizationInline(TestCase):
         request = self.factory.get("/fake-url/")
         request.user = self.admin
 
-        self.assertEquals(("id",), sub_org_inline.get_readonly_fields(request))
-        self.assertEquals(
+        self.assertEqual(("id",), sub_org_inline.get_readonly_fields(request))
+        self.assertEqual(
             ("id",), sub_org_inline.get_readonly_fields(request, obj=self.editable_org)
         )
 
@@ -200,7 +200,7 @@ class TestProtectedSubOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = sub_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.normal_org)])
+        self.assertQuerysetEqual(qs, [self.normal_org])
 
     def test_has_add_permission(self):
         sub_org_inline = ProtectedSubOrganizationInline(Organization, self.site)
@@ -232,7 +232,7 @@ class TestProtectedSubOrganizationInline(TestCase):
         request = self.factory.get("/fake-url/")
         request.user = self.admin
 
-        self.assertEquals(
+        self.assertEqual(
             sub_org_inline.form.base_fields, sub_org_inline.get_readonly_fields(request)
         )
 
@@ -258,7 +258,7 @@ class TestAffiliatedOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = aff_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.editable_org)])
+        self.assertQuerysetEqual(qs, [self.editable_org])
 
     def test_has_add_permission(self):
         aff_org_inline = AffiliatedOrganizationInline(Organization, self.site)
@@ -310,11 +310,11 @@ class TestAffiliatedOrganizationInline(TestCase):
         request = self.factory.get("/fake-url/")
         request.user = self.admin
 
-        self.assertEquals(
+        self.assertEqual(
             ("data_source", "origin_id", "id"),
             aff_org_inline.get_readonly_fields(request),
         )
-        self.assertEquals(
+        self.assertEqual(
             ("data_source", "origin_id", "id"),
             aff_org_inline.get_readonly_fields(request, obj=self.editable_org),
         )
@@ -390,8 +390,8 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         request = self.factory.get("/fake-url/")
         request.user = self.admin
 
-        self.assertEquals(("id",), sub_org_inline.get_readonly_fields(request))
-        self.assertEquals(
+        self.assertEqual(("id",), sub_org_inline.get_readonly_fields(request))
+        self.assertEqual(
             ("id",), sub_org_inline.get_readonly_fields(request, obj=self.editable_org)
         )
 
@@ -415,7 +415,7 @@ class TestProtectedAffiliatedOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = aff_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [repr(self.affiliated_org)])
+        self.assertQuerysetEqual(qs, [self.affiliated_org])
 
     def test_has_add_permission(self):
         aff_org_inline = ProtectedAffiliatedOrganizationInline(Organization, self.site)
@@ -447,7 +447,7 @@ class TestProtectedAffiliatedOrganizationInline(TestCase):
         request = self.factory.get("/fake-url/")
         request.user = self.admin
 
-        self.assertEquals(
+        self.assertEqual(
             aff_org_inline.form.base_fields, aff_org_inline.get_readonly_fields(request)
         )
 
@@ -487,12 +487,12 @@ class TestOrganizationAdmin(TestCase):
         self.assertQuerysetEqual(
             qs,
             [
-                repr(self.organization),
-                repr(self.affiliated_organization),
-                repr(self.editable_organization),
-                repr(org),
-                repr(sub_org),
-                repr(another_sub_org),
+                self.organization,
+                self.affiliated_organization,
+                self.editable_organization,
+                org,
+                sub_org,
+                another_sub_org,
             ],
             ordered=False,
         )
@@ -509,9 +509,9 @@ class TestOrganizationAdmin(TestCase):
         self.assertQuerysetEqual(
             qs,
             [
-                repr(self.organization),
-                repr(self.affiliated_organization),
-                repr(sub_org),
+                self.organization,
+                self.affiliated_organization,
+                sub_org,
             ],
         )
 
@@ -521,11 +521,11 @@ class TestOrganizationAdmin(TestCase):
         self.assertQuerysetEqual(
             qs,
             [
-                repr(self.organization),
-                repr(self.affiliated_organization),
-                repr(org),
-                repr(sub_org),
-                repr(another_sub_org),
+                self.organization,
+                self.affiliated_organization,
+                org,
+                sub_org,
+                another_sub_org,
             ],
             ordered=False,
         )

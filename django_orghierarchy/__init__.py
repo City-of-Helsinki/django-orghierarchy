@@ -1,3 +1,3 @@
-default_app_config = "django_orghierarchy.apps.DjangoOrghierarchyConfig"
+from importlib import metadata
 
-__version__ = "0.3.0"
+__version__ = metadata.version("django_orghierarchy")

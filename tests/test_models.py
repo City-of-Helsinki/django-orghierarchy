@@ -49,8 +49,8 @@ class TestOrganization(TestCase):
 
     def test_sub_organizations(self):
         qs = self.parent_organization.sub_organizations
-        self.assertQuerysetEqual(qs, [repr(self.organization)])
+        self.assertQuerysetEqual(qs, [self.organization])
 
     def test_affiliated_organizations(self):
         qs = self.parent_organization.affiliated_organizations
-        self.assertQuerysetEqual(qs, [repr(self.affiliated_organization)])
+        self.assertQuerysetEqual(qs, [self.affiliated_organization])

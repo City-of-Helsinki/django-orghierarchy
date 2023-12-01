@@ -84,8 +84,8 @@ Use the `-f` option to specify target environments.
 ```bash
 # Target only Python 3.9 environments
 tox -f py39
-# Target Python 3.9 and Django 3.2
-tox -f py39 django32
+# Target Python 3.9 and Django 4.2
+tox -f py39 django42
 ```
 
 

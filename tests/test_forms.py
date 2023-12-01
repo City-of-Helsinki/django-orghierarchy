@@ -17,9 +17,7 @@ class TestOrganizationForm(TestCase):
 
     def test_init_without_instance(self):
         form = OrganizationForm()
-        self.assertQuerysetEqual(
-            form.fields["parent"].queryset, [repr(self.organization)]
-        )
+        self.assertQuerysetEqual(form.fields["parent"].queryset, [self.organization])
 
     def test_init_with_instance(self):
         form = OrganizationForm(instance=self.organization)
@@ -32,12 +30,12 @@ class TestOrganizationForm(TestCase):
         form = OrganizationForm()
         queryset = form.fields["replaced_by"].queryset
         self.assertQuerysetEqual(
-            queryset, [repr(self.organization), repr(organization_2)], ordered=False
+            queryset, [self.organization, organization_2], ordered=False
         )
 
         form = OrganizationForm(instance=organization_2)
         queryset = form.fields["replaced_by"].queryset
-        self.assertQuerysetEqual(queryset, [repr(self.organization)])
+        self.assertQuerysetEqual(queryset, [self.organization])
 
     def test_clean(self):
         form_data = {

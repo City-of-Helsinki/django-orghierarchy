@@ -30,7 +30,7 @@ class DataType(Enum):
 
 
 class RestAPIImporter:
-    """This class allows importing organization data from a REST API endpoint. The
+    r"""This class allows importing organization data from a REST API endpoint. The
     default configuration supports the 6aika Open Decision API specification:
     https://github.com/6aika/api-paatos
 
@@ -91,26 +91,26 @@ class RestAPIImporter:
 
     Example config:
         {
-            'next_key': 'next',
-            'results_key: 'results',
-            'fields': ['origin_id', 'data_source', 'classification'],
-            'update_fields': ['classification'],
-            'field_config': {
-                'origin_id': {
-                    'source_field': 'id',
-                    'data_type': 'regex',
-                    'pattern': r'abc:(\d+)',
+            "next_key": "next",
+            "results_key": "results",
+            "fields": ["origin_id", "data_source", "classification"],
+            "update_fields": ["classification"],
+            "field_config": {
+                "origin_id": {
+                    "source_field": "id",
+                    "data_type": "regex",
+                    "pattern": r"abc:(\d+)",
                 },
-                'parent': {
-                    'data_type': 'link',
-                }
+                "parent": {
+                    "data_type": "link",
+                },
             },
-            'rename_data_source': {
-                'original_name_1': 'new_name_1',
-                'original_name_2': 'new_name_2',
+            "rename_data_source": {
+                "original_name_1": "new_name_1",
+                "original_name_2": "new_name_2",
             },
-            'default_data_source': 'new_name_1',
-            'default_parent_organization': None
+            "default_data_source": "new_name_1",
+            "default_parent_organization": None,
         }
     """
 

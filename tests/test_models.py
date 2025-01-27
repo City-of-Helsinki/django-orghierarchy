@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.test import TestCase
 
 from django_orghierarchy.models import Organization
@@ -54,3 +55,13 @@ class TestOrganization(TestCase):
     def test_affiliated_organizations(self):
         qs = self.parent_organization.affiliated_organizations
         self.assertQuerysetEqual(qs, [self.affiliated_organization])
+
+    def test_save_duplicate_id_when_data_source_null(self):
+        OrganizationFactory(data_source=None, origin_id="test")
+        with self.assertRaises(IntegrityError):
+            OrganizationFactory(data_source=None, origin_id="test")
+
+    def test_save_duplicate(self):
+        org1 = OrganizationFactory()
+        with self.assertRaises(IntegrityError):
+            OrganizationFactory(data_source=org1.data_source, origin_id=org1.origin_id)

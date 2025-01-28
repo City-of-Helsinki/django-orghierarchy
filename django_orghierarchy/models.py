@@ -1,6 +1,7 @@
 import swapper
 from django.conf import settings
 from django.db import models
+from django.db.models import Q, UniqueConstraint
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -56,12 +57,28 @@ class DataModel(models.Model):
 
     class Meta:
         abstract = True
-        unique_together = ("data_source", "origin_id")
+        constraints = [
+            UniqueConstraint(
+                fields=("data_source", "origin_id"),
+                name="%(app_label)s_%(class)s_data_source_and_origin_id_unique",
+            ),
+            # PostgreSQL considers null as always unique
+            # so origin_id must be unique among null data sources
+            UniqueConstraint(
+                fields=("origin_id",),
+                condition=Q(data_source__isnull=True),
+                name="%(app_label)s_%(class)s_origin_id_unique_if_data_source_null",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.id:
             # the id is only set when creating object, it cannot be changed later
             self.id = "{0}:{1}".format(self.data_source_id, self.origin_id)
+            # Last resort in case unique validations don't catch it:
+            # set force_insert to True to avoid accidentally overwriting
+            # an existing row
+            kwargs["force_insert"] = True
         super().save(*args, **kwargs)
 
 
@@ -69,7 +86,7 @@ class OrganizationClass(DataModel):
     name = models.CharField(max_length=255)
 
     class Meta:
-        unique_together = ("data_source", "origin_id")
+        constraints = DataModel.Meta.constraints
         verbose_name = _("Organization class")
         verbose_name_plural = _("Organization classes")
 
@@ -154,7 +171,7 @@ class Organization(MPTTModel, DataModel):
         return self.children.filter(internal_type=self.AFFILIATED)
 
     class Meta:
-        unique_together = ("data_source", "origin_id")
+        constraints = DataModel.Meta.constraints
         permissions = (
             ("add_affiliated_organization", "Can add affiliated organization"),
             ("change_affiliated_organization", "Can change affiliated organization"),

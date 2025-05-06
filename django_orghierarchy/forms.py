@@ -26,9 +26,11 @@ class OrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # the fields can be dynamically exclude, for example set them to readonly in admin
+        # the fields can be dynamically exclude, for example set them to readonly in
+        # admin
         if "replaced_by" in self.fields:
-            # An organization cannot be replaced by an organization that have already been replaced
+            # An organization cannot be replaced by an organization that have already
+            # been replaced
             qs = Organization.objects.filter(replaced_by__isnull=True)
             if self.instance.id:
                 # prevent self reference
@@ -87,7 +89,8 @@ class SubOrganizationForm(forms.ModelForm):
         kwargs["initial"]["internal_type"] = self.default_internal_type
         super().__init__(*args, **kwargs)
 
-        # the fields can be dynamically exclude, for example set them to readonly in admin
+        # the fields can be dynamically exclude, for example set them to readonly in
+        # admin
         if "data_source" in self.fields:
             # Only allow selecting data source within editable sources
             self.fields[

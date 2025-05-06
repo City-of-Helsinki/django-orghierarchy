@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from django.core.management import call_command, CommandError
+from django.core.management import CommandError, call_command
 from django.test import TestCase
 
 from django_orghierarchy.importers import DataImportError

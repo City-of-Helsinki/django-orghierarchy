@@ -34,7 +34,8 @@ class SubOrganizationInline(admin.TabularInline):
     fk_name = "parent"
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
-    # these have to be specified separately to prevent seeing redundant internal_type field
+    # these have to be specified separately to prevent seeing redundant internal_type
+    # field
     fields = ("name", "founding_date", "classification", "data_source", "origin_id")
     extra = 0
 
@@ -59,7 +60,8 @@ class AddSubOrganizationInline(admin.TabularInline):
     fk_name = "parent"
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
-    # these have to be specified separately to prevent seeing redundant internal_type field
+    # these have to be specified separately to prevent seeing redundant internal_type
+    # field
     fields = ("name", "founding_date", "classification", "data_source", "origin_id")
     extra = 1
 
@@ -73,8 +75,8 @@ class AddSubOrganizationInline(admin.TabularInline):
         return False
 
     def get_readonly_fields(self, request, obj=None):
-        # we have to have this separate since obj is the parent org, not the new empty one
-        # so new suborganizations to be added allow all fields to be defined
+        # we have to have this separate since obj is the parent org, not the new empty
+        # one so new suborganizations to be added allow all fields to be defined
         return ("id",)
 
 
@@ -85,7 +87,8 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
     fk_name = "parent"
     form = SubOrganizationForm
     organization_type = Organization.NORMAL
-    # these have to be specified separately to prevent seeing redundant internal_type field
+    # these have to be specified separately to prevent seeing redundant internal_type
+    # field
     fields = ("name", "founding_date", "classification", "data_source", "origin_id")
     extra = 0
 
@@ -106,7 +109,8 @@ class ProtectedSubOrganizationInline(admin.TabularInline):
         return False
 
     def has_change_permission(self, request, obj=None):
-        # here obj refers to the *parent* organization, change permission to parent is needed
+        # here obj refers to the *parent* organization, change permission to parent is
+        # needed
         if request.user.has_perm("django_orghierarchy.change__organization"):
             return True
         return super().has_change_permission(request, obj)
@@ -148,7 +152,8 @@ class AddAffiliatedOrganizationInline(AddSubOrganizationInline):
     organization_type = Organization.AFFILIATED
 
     def __init__(self, *args, **kwargs):
-        # this is the only admin that needs the (hidden) internal_type field, to create a new affiliated organization
+        # this is the only admin that needs the (hidden) internal_type field, to create
+        # a new affiliated organization
         super().__init__(*args, **kwargs)
         self.fields += ("internal_type",)
 
@@ -168,7 +173,8 @@ class ProtectedAffiliatedOrganizationInline(ProtectedSubOrganizationInline):
     extra = 0
 
     def has_change_permission(self, request, obj=None):
-        # here obj refers to the *parent* organization, change permission to parent is needed
+        # here obj refers to the *parent* organization, change permission to parent is
+        # needed
         if request.user.has_perm(
             "django_orghierarchy.change__organization"
         ) or request.user.has_perm(
@@ -218,13 +224,15 @@ class OrganizationAdmin(DraggableMPTTAdmin):
             admin_orgs = []
             for admin_org in request.user.admin_organizations.all():
                 admin_orgs.append(admin_org.get_descendants(include_self=True))
-            # for multiple admin_orgs, we have to combine the querysets and filter distinct
+            # for multiple admin_orgs, we have to combine the querysets and filter
+            # distinct
             return reduce(lambda a, b: a | b, admin_orgs).distinct()
         return super().get_queryset(request)
 
     def get_readonly_fields(self, request, obj=None):
         has_write_access = False
-        # queryset is already filtered, but write permissions have to be checked based on organization_type
+        # queryset is already filtered, but write permissions have to be checked based
+        # on organization_type
         if obj and obj.internal_type == Organization.AFFILIATED:
             # full rights also cover affiliated organizations
             has_write_access = request.user.has_perm(
@@ -255,7 +263,8 @@ class OrganizationAdmin(DraggableMPTTAdmin):
                 return self.protected_readonly_fields + ("replaced_by",)
             # Protected organizations allow only user fields to be changed
             return self.protected_readonly_fields
-        # Editable organizations have no such restrictions, but replacement still requires extra privileges
+        # Editable organizations have no such restrictions, but replacement still
+        # requires extra privileges
         readonly_fields = super().get_readonly_fields(request, obj)
         if obj:
             readonly_fields += self.existing_readonly_fields
@@ -264,7 +273,7 @@ class OrganizationAdmin(DraggableMPTTAdmin):
         return readonly_fields
 
     def save_model(self, request, obj, form, change):
-        # TODO: only allow creating objects for editable data sources?! or only system data source?
+        # TODO: only allow creating objects for editable data sources?! or only system data source? # noqa E501
         if not obj.pk:
             obj.created_by = request.user
         obj.last_modified_by = request.user

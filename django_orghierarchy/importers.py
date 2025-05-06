@@ -292,7 +292,8 @@ class RestAPIImporter:
             self._default_parent = self._import_organization(default_parent_data)
         # Save all the data from the REST endpoint in a single dict.
         # This is for cases where we need to access the data by id instead of link.
-        # Caching is necessary for importing all parent organizations before their children.
+        # Caching is necessary for importing all parent organizations before
+        # their children.
         self._data_dict = {}
         for data_item in self._data_iter(self.url):
             self._data_dict[data_item["id"]] = data_item
@@ -481,14 +482,16 @@ class RestAPIImporter:
                     raise
             values_to_update[field] = value
 
-        # Organization parent (and its parent) have been imported and updated recursively. If one of
-        # them used to be the descendant of this organization, this might result in mptt InvalidMove
-        # exception if this organization instance is not up-to-date with the database.
+        # Organization parent (and its parent) have been imported and updated
+        # recursively. If one of them used to be the descendant of this organization,
+        # this might result in mptt InvalidMove exception if this organization instance
+        # is not up-to-date with the database.
         # See https://github.com/django-mptt/django-mptt/issues/650
 
-        # Therefore, we may only fetch the organization from the db *after* all its parents have been
-        # processed, to get up-to-date status of the mptt tree before saving each organization.
-        # enforce lower case id standard, but recognize upper case ids as equal:
+        # Therefore, we may only fetch the organization from the db *after* all its
+        # parents have been processed, to get up-to-date status of the mptt tree before
+        # saving each organization. Enforce lower case id standard, but recognize upper
+        # case ids as equal:
         organization = Organization.objects.get(
             origin_id__iexact=origin_id, data_source=data_source
         )
@@ -608,10 +611,13 @@ class RestAPIImporter:
         will be used.
 
         If the data type is DataType.VALUE, the value will be returned;
-        If the data type is DataType.STR_LOWER, the value will be returned stringified to lower case;
-        If the data type is DataType.ORG_ID, corresponding organization will be returned;
+        If the data type is DataType.STR_LOWER, the value will be returned stringified
+        to lower case;
+        If the data type is DataType.ORG_ID, corresponding organization will be
+        returned;
         If the data type is DataType.LINK, the data in the link will be returned;
-        If the data type is DataType.REGEX, the extracted value for the pattern will be returned.
+        If the data type is DataType.REGEX, the extracted value for the pattern will be
+        returned.
         """
         source_field = config.get("source_field") or field
         try:
@@ -633,8 +639,9 @@ class RestAPIImporter:
                 data_type = DataType(config["data_type"])
             except ValueError:
                 raise DataImportError(
-                    f'Invalid data type: {config["data_type"]}. '
-                    f'Supported data types are: {", ".join([e.value for e in DataType])}'
+                    f"Invalid data type: {config['data_type']}. "
+                    f"Supported data types are: "
+                    f"{', '.join([e.value for e in DataType])}"
                 )
         else:
             data_type = DataType.VALUE
@@ -647,8 +654,8 @@ class RestAPIImporter:
         if config.get("unwrap_list"):
             if len(value) > 1:
                 warnings.warn(
-                    "More than one value in the list, unwrap_list only unwraps the "
-                    "first value in the list.",
+                    "More than one value in the list, unwrap_list only "
+                    "unwraps the first value in the list.",
                     UserWarning,
                     stacklevel=2,
                 )

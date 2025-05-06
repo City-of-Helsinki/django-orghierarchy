@@ -21,7 +21,8 @@ class Command(BaseCommand):
             dest="rename_data_source",
             nargs="+",
             default=["helsinki:ahjo"],
-            help="Rename data sources. Renaming should be specified as <old_identifier>:<new_identifier>",
+            help="Rename data sources. Renaming should be specified as "
+            "<old_identifier>:<new_identifier>",
         )
 
         parser.add_argument(
@@ -38,7 +39,8 @@ class Command(BaseCommand):
             old_name, new_name = value.split(":")
         except ValueError:
             raise CommandError(
-                "Invalid data source renaming. Renaming should be specified as <old_identifier>:<new_identifier>"
+                "Invalid data source renaming. Renaming should be specified as "
+                "<old_identifier>:<new_identifier>"
             )
 
         return old_name.strip(), new_name.strip()

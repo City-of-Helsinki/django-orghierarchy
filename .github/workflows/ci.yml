@@ -19,7 +19,7 @@ jobs:
       TOX_POSARGS: -- --cov=. --cov-report=xml -ra -vv
     strategy:
       matrix:
-        python_version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python_version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
       - name: Checkout
@@ -60,51 +60,23 @@ jobs:
       - name: Build
         run: python -m build .
 
-  black:
-    name: Coding style - black
+  commitlint:
+    name: Commitlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check commitlint
+        uses: wagoid/commitlint-github-action@3d28780bbf0365e29b144e272b2121204d5be5f3  # v6.1.2
+
+  pre-commit:
+    name: Run pre-commit hooks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Run black
-        uses: psf/black@stable
+      - name: Setup Python ${{ inputs.python-version }}
+        uses: actions/setup-python@v5
         with:
-          options: "--check"
-
-  flake8:
-    name: Coding style - flake8
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.DEFAULT_PYTHON }}
-
-      - name: Install dependencies
-        run: pip install flake8 pep8-naming flake8-bugbear
-      - name: Run flake8
-        uses: liskin/gh-problem-matcher-wrap@v2
-        with:
-          linters: flake8
-          run: flake8
-
-  isort:
-    name: Coding style - isort
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.DEFAULT_PYTHON }}
-
-      - name: Install dependencies
-        run: pip install isort
-      - name: Run isort
-        uses: liskin/gh-problem-matcher-wrap@v2
-        with:
-          linters: isort
-          run: isort -c .
+          python-version: ${{ inputs.python-version }}
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1

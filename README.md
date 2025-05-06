@@ -105,16 +105,13 @@ pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds
 ## Code format
 
 This project uses
-[`black`](https://github.com/ambv/black),
-[`flake8`](https://github.com/pycqa/flake8) and
-[`isort`](https://github.com/timothycrosley/isort)
-for code formatting and quality checking. Project follows the basic
-black config, without any modifications.
+[`ruff`](https://github.com/astral-sh/ruff)
+for code formatting and quality checking. Ruff configuration is to be found
+in `pyproject.toml`.
 
-Basic `black` commands:
+Basic `ruff` commands:
 
-* To let `black` do its magic: `black .`
-* To see which files `black` would change: `black --check .`
+* To let `ruff` do its magic: `ruff format` and `ruff check --fix`
 
 [`pre-commit`](https://pre-commit.com/) can be used to install and
 run all the formatting tools as git hooks automatically before a

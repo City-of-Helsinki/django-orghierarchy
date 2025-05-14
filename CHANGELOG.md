@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.5.0...django-orghierarchy-v0.5.1) (2025-05-14)
+
+
+### Bug Fixes
+
+* Publish to pypi in release please pipeline ([2bae13f](https://github.com/City-of-Helsinki/django-orghierarchy/commit/2bae13fb42c8be0e269807f3f5dc02c0411a7606))
+
 ## [0.5.0](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.4.0...django-orghierarchy-v0.5.0) (2025-05-07)
 
 

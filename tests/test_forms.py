@@ -17,11 +17,11 @@ class TestOrganizationForm(TestCase):
 
     def test_init_without_instance(self):
         form = OrganizationForm()
-        self.assertQuerysetEqual(form.fields["parent"].queryset, [self.organization])
+        self.assertQuerySetEqual(form.fields["parent"].queryset, [self.organization])
 
     def test_init_with_instance(self):
         form = OrganizationForm(instance=self.organization)
-        self.assertQuerysetEqual(form.fields["parent"].queryset, [])
+        self.assertQuerySetEqual(form.fields["parent"].queryset, [])
 
     def test_replaced_by_field_queryset_exclude_already_replaced(self):
         OrganizationFactory(replaced_by=self.organization)
@@ -29,13 +29,13 @@ class TestOrganizationForm(TestCase):
 
         form = OrganizationForm()
         queryset = form.fields["replaced_by"].queryset
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             queryset, [self.organization, organization_2], ordered=False
         )
 
         form = OrganizationForm(instance=organization_2)
         queryset = form.fields["replaced_by"].queryset
-        self.assertQuerysetEqual(queryset, [self.organization])
+        self.assertQuerySetEqual(queryset, [self.organization])
 
     def test_clean(self):
         form_data = {

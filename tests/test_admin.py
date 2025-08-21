@@ -44,7 +44,7 @@ class TestSubOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = sub_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [self.editable_org])
+        self.assertQuerySetEqual(qs, [self.editable_org])
 
     def test_has_add_permission(self):
         sub_org_inline = SubOrganizationInline(Organization, self.site)
@@ -124,7 +124,7 @@ class TestAddSubOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = sub_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [])
+        self.assertQuerySetEqual(qs, [])
 
     def test_has_add_permission(self):
         sub_org_inline = AddSubOrganizationInline(Organization, self.site)
@@ -200,7 +200,7 @@ class TestProtectedSubOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = sub_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [self.normal_org])
+        self.assertQuerySetEqual(qs, [self.normal_org])
 
     def test_has_add_permission(self):
         sub_org_inline = ProtectedSubOrganizationInline(Organization, self.site)
@@ -258,7 +258,7 @@ class TestAffiliatedOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = aff_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [self.editable_org])
+        self.assertQuerySetEqual(qs, [self.editable_org])
 
     def test_has_add_permission(self):
         aff_org_inline = AffiliatedOrganizationInline(Organization, self.site)
@@ -338,7 +338,7 @@ class TestAddAffiliatedOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = sub_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [])
+        self.assertQuerySetEqual(qs, [])
 
     def test_has_add_permission(self):
         sub_org_inline = AddAffiliatedOrganizationInline(Organization, self.site)
@@ -415,7 +415,7 @@ class TestProtectedAffiliatedOrganizationInline(TestCase):
         request.user = self.admin
 
         qs = aff_org_inline.get_queryset(request)
-        self.assertQuerysetEqual(qs, [self.affiliated_org])
+        self.assertQuerySetEqual(qs, [self.affiliated_org])
 
     def test_has_add_permission(self):
         aff_org_inline = ProtectedAffiliatedOrganizationInline(Organization, self.site)
@@ -484,7 +484,7 @@ class TestOrganizationAdmin(TestCase):
         request.user = self.admin
         qs = oa.get_queryset(request)
         self.assertIsInstance(qs, Organization.objects._queryset_class)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             qs,
             [
                 self.organization,
@@ -501,12 +501,12 @@ class TestOrganizationAdmin(TestCase):
         request.user = normal_admin
         qs = oa.get_queryset(request)
         self.assertIsInstance(qs, Organization.objects._queryset_class)
-        self.assertQuerysetEqual(qs, [])
+        self.assertQuerySetEqual(qs, [])
 
         self.organization.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
         self.assertIsInstance(qs, Organization.objects._queryset_class)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             qs,
             [
                 self.organization,
@@ -518,7 +518,7 @@ class TestOrganizationAdmin(TestCase):
         org.admin_users.add(normal_admin)
         qs = oa.get_queryset(request)
         self.assertIsInstance(qs, Organization.objects._queryset_class)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             qs,
             [
                 self.organization,

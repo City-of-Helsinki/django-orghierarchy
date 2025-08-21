@@ -50,11 +50,11 @@ class TestOrganization(TestCase):
 
     def test_sub_organizations(self):
         qs = self.parent_organization.sub_organizations
-        self.assertQuerysetEqual(qs, [self.organization])
+        self.assertQuerySetEqual(qs, [self.organization])
 
     def test_affiliated_organizations(self):
         qs = self.parent_organization.affiliated_organizations
-        self.assertQuerysetEqual(qs, [self.affiliated_organization])
+        self.assertQuerySetEqual(qs, [self.affiliated_organization])
 
     def test_save_duplicate_id_when_data_source_null(self):
         OrganizationFactory(data_source=None, origin_id="test")

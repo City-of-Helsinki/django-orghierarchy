@@ -1,7 +1,7 @@
 import datetime
 
 import pytest
-from pytest_django.asserts import assertQuerysetEqual
+from pytest_django.asserts import assertQuerySetEqual
 
 from django_orghierarchy.importers import DataImportError, RestAPIImporter
 from django_orghierarchy.models import Organization, OrganizationClass
@@ -236,7 +236,7 @@ def test_import_organization_class(importer):
     organization_class = importer._import_organization_class(org_1["type"])
 
     qs = OrganizationClass.objects.all()
-    assertQuerysetEqual(qs, [organization_class])
+    assertQuerySetEqual(qs, [organization_class])
     assert organization_class.id == f"{importer.default_data_source}:city"
     assert organization_class.name == f"{importer.default_data_source}:city"
 
@@ -252,7 +252,7 @@ def test_import_organization_class_with_remapped_data_source(
     organization_class = importer._import_organization_class(org_1["type"])
 
     qs = OrganizationClass.objects.all()
-    assertQuerysetEqual(qs, [organization_class])
+    assertQuerySetEqual(qs, [organization_class])
     assert organization_class.id == "remapped:city"
     assert organization_class.name == "remapped:city"
 
@@ -264,7 +264,7 @@ def test_import_data_source(importer):
 
     data_source_model = get_data_source_model()
     qs = data_source_model.objects.all()
-    assertQuerysetEqual(qs, [data_source])
+    assertQuerySetEqual(qs, [data_source])
     assert data_source.id == f"{importer.default_data_source}"
 
 
@@ -279,7 +279,7 @@ def test_import_data_source_with_remapped_identifier(importer):
 
     data_source_model = get_data_source_model()
     qs = data_source_model.objects.all()
-    assertQuerysetEqual(qs, [data_source])
+    assertQuerySetEqual(qs, [data_source])
     assert data_source.id == "remapped"
 
 
@@ -347,7 +347,7 @@ def test_import_organization_without_parent(importer):
     organization = importer._import_organization(org_1)
 
     qs = Organization.objects.all()
-    assertQuerysetEqual(qs, [organization])
+    assertQuerySetEqual(qs, [organization])
     assert organization.name == org_1["name_fi"]
     assert (
         organization.id

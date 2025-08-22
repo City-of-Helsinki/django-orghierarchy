@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.5.1...django-orghierarchy-v0.6.0) (2025-08-22)
+
+
+### Features
+
+* Support django 5.2 ([6022137](https://github.com/City-of-Helsinki/django-orghierarchy/commit/6022137122c5af73df200dc56e0674bbf19a5bd4))
+
 ## [0.5.1](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.5.0...django-orghierarchy-v0.5.1) (2025-05-14)
 
 

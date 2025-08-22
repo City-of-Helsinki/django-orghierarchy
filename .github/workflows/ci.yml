@@ -19,7 +19,7 @@ jobs:
       TOX_POSARGS: -- --cov=. --cov-report=xml -ra -vv
     strategy:
       matrix:
-        python_version: ['3.9', '3.10', '3.11', '3.12']
+        python_version: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
       - name: Checkout

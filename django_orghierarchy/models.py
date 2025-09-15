@@ -182,6 +182,13 @@ class Organization(MPTTModel, DataModel):
                 "Can add/remove regular users to organizations",
             ),
         )
+        indexes = [
+            models.Index(fields=["tree_id", "lft"], name="tree_id_lft_idx"),
+            models.Index(fields=["id", "tree_id"], name="id_tree_id_idx"),
+            models.Index(fields=["lft"], name="lft_idx"),
+            models.Index(fields=["tree_id", "id"], name="tree_id_id_idx"),
+            models.Index(fields=["id", "replaced_by_id"], name="id_replaced_by_id_idx"),
+        ]
 
     def __str__(self):
         if self.dissolution_date:

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.6.0...django-orghierarchy-v0.6.1) (2025-09-22)
+
+
+### Performance Improvements
+
+* Add PostgreSQL index recommendations ([3fc84a4](https://github.com/City-of-Helsinki/django-orghierarchy/commit/3fc84a4939ca6a67d2fe3dcd914ff66eb5bdffe8))
+
 ## [0.6.0](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.5.1...django-orghierarchy-v0.6.0) (2025-08-22)
 
 

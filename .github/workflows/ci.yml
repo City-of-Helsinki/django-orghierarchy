@@ -12,6 +12,28 @@ on:
   workflow_dispatch:
 
 jobs:
+  commitlint:
+    name: Check commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run commitlint
+        uses: wagoid/commitlint-github-action@3d28780bbf0365e29b144e272b2121204d5be5f3  # v6.1.2
+
+  pre-commit:
+    name: Run pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Run pre-commit
+      uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+
   test:
     name: Python ${{ matrix.python_version }}
     runs-on: ubuntu-latest
@@ -40,9 +62,16 @@ jobs:
       - name: Run tox targets for Python ${{ matrix.python_version }}
         run: tox run -f py$(echo ${{ matrix.python_version }} | tr -d .) ${{ env.TOX_POSARGS }}
 
-      - name: Upload Coverage to Codecov
+      - name: Override coverage report source path for SonarQube Cloud
         if: ${{ matrix.python_version == env.DEFAULT_PYTHON }}
-        uses: codecov/codecov-action@v3
+        run: sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.xml
+
+      - name: SonarQube Cloud Scan
+        if: ${{ matrix.python_version == env.DEFAULT_PYTHON }}
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
     name: Build package
@@ -59,24 +88,3 @@ jobs:
         run: pip install -U setuptools wheel build
       - name: Build
         run: python -m build .
-
-  commitlint:
-    name: Commitlint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check commitlint
-        uses: wagoid/commitlint-github-action@3d28780bbf0365e29b144e272b2121204d5be5f3  # v6.1.2
-
-  pre-commit:
-    name: Run pre-commit hooks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Python ${{ inputs.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ inputs.python-version }}
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1

@@ -169,7 +169,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name="organization",
-            unique_together=set([("data_source", "origin_id")]),
+            unique_together={("data_source", "origin_id")},
         ),
         migrations.AddField(
             model_name="organization",

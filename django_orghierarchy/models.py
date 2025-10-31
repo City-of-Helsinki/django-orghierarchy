@@ -74,7 +74,7 @@ class DataModel(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             # the id is only set when creating object, it cannot be changed later
-            self.id = "{0}:{1}".format(self.data_source_id, self.origin_id)
+            self.id = f"{self.data_source_id}:{self.origin_id}"
             # Last resort in case unique validations don't catch it:
             # set force_insert to True to avoid accidentally overwriting
             # an existing row

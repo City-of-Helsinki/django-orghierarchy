@@ -2,7 +2,7 @@ import factory
 
 
 class DataSourceFactory(factory.django.DjangoModelFactory):
-    id = factory.Sequence(lambda n: "data-source-{0}".format(n))
+    id = factory.Sequence(lambda n: f"data-source-{n}")
     name = factory.Faker("text", max_nb_chars=255)
 
     class Meta:

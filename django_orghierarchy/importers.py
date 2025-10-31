@@ -589,8 +589,7 @@ class RestAPIImporter:
             raise DataImportError(e) from e
 
         data = r.json()
-        for data_item in data[self.results_key] if self.results_key else data:
-            yield data_item
+        yield from data[self.results_key] if self.results_key else data
 
         logger.info(f"Reading data from {url} completed")
 

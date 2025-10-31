@@ -64,6 +64,6 @@ class Command(BaseCommand):
             importer = RestAPIImporter(url, config)
             importer.import_data()
         except DataImportError as e:
-            self.stderr.write("Import failed: {0}".format(e))
+            self.stderr.write(f"Import failed: {e}")
         else:
             self.stdout.write("Import completed successfully")

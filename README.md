@@ -82,10 +82,10 @@ tox
 Use the `-f` option to specify target environments.
 
 ```bash
-# Target only Python 3.9 environments
-tox -f py39
-# Target Python 3.9 and Django 4.2
-tox -f py39 django42
+# Target only Python 3.10 environments
+tox -f py310
+# Target Python 3.10 and Django 4.2
+tox -f py310 django42
 ```
 
 

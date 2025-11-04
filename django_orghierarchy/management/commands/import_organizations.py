@@ -51,7 +51,7 @@ class Command(BaseCommand):
         config = {}
         if options["config"]:
             config = copy.deepcopy(
-                getattr(RestAPIImporter, "%s_config" % options["config"])
+                getattr(RestAPIImporter, f"{options['config']}_config")
             )
         if options["rename_data_source"]:
             rename_data_source = {}

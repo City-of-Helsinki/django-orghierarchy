@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.2](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.6.1...django-orghierarchy-v0.6.2) (2025-11-05)
+
+
+### Bug Fixes
+
+* Make python version a string ([db84bbf](https://github.com/City-of-Helsinki/django-orghierarchy/commit/db84bbf81f564b74b4bb0272d6ca1032c882c410))
+
+
+### Dependencies
+
+* Add support for Python 3.14, drop support for Python 3.9 ([cb6f6c7](https://github.com/City-of-Helsinki/django-orghierarchy/commit/cb6f6c7b60ab7556ebcb897b2122b8ec8a39a7f9))
+* Remove redundant tools from requirements ([d0639ff](https://github.com/City-of-Helsinki/django-orghierarchy/commit/d0639fff2e9c20e13352813f69bde16bd7ae0ea1))
+
 ## [0.6.1](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.6.0...django-orghierarchy-v0.6.1) (2025-09-22)
 
 

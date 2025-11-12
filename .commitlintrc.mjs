@@ -3,7 +3,8 @@ export default {
     '@commitlint/config-conventional'
   ],
   ignores: [
-    (message) => message.includes('Signed-off-by: dependabot[bot]')
+    (message) => message.includes('Signed-off-by: dependabot[bot]'),
+    (message) => message.includes('Signed-off-by: sol-office-file-synchronization[bot]')
   ],
   rules: {
     'header-max-length': [

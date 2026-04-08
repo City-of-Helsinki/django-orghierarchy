@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "django-orghierarchy"
@@ -8,12 +8,16 @@ version = "0.6.2"
 requires-python = ">=3.10"
 description = "Reusable Django application for hierarchical organizations."
 readme = "README.md"
-license = {text = "MIT License"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     {name = "City of Helsinki", email = "dev@hel.fi"},
 ]
+keywords = [
+    "django",
+]
 dependencies = [
-    "Django>=4.2",
+    "Django>=5.2",
     "django-mptt",
     "djangorestframework",
     "requests",
@@ -22,9 +26,8 @@ dependencies = [
 classifiers = [
     "Environment :: Web Environment",
     "Framework :: Django",
-    "Framework :: Django :: 4.2",
-    "Framework :: Django :: 5.1",
     "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -38,14 +41,89 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
 
+[project.optional-dependencies]
+test = [
+    "coverage",
+    "factory-boy",
+    "pytest",
+    "pytest-cov",
+    "pytest-django",
+    "requests-mock",
+]
+all = ["django-orghierarchy[test]"]
+
 [project.urls]
 Homepage = "https://github.com/City-of-Helsinki/django-orghierarchy"
+Issues = "https://github.com/City-of-Helsinki/django-orghierarchy/issues"
 
-[tool.setuptools.packages.find]
-exclude = ["tests*"]
+[tool.coverage.run]
+source = ["django_orghierarchy"]
+omit = ["**/migrations/*"]
+parallel = true
 
-[tool.setuptools]
-include-package-data = true
+[tool.hatch.build.targets.wheel]
+packages = ["django_orghierarchy"]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pre-commit",
+]
+features = ["all"]
+python = "3.10"
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args}"
+lint = [
+    "pre-commit install",
+    "pre-commit run -a",
+]
+manage = "tests/manage.py {args}"
+
+[tool.hatch.envs.hatch-test]
+default-args = ["tests"]
+features = ["all"]
+matrix-name-format = "dj{value}"
+parallel = false
+randomize = true
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.10", "3.11", "3.12", "3.13", "3.14"]
+django = ["5.2"]
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.12", "3.13", "3.14"]
+django = ["6.0"]
+
+[tool.hatch.envs.hatch-test.overrides]
+matrix.django.dependencies = [
+    { value = "django~={matrix:django}" },
+]
+
+[tool.hatch.envs.hatch-test.scripts]
+run = [
+    "./tests/manage.py makemigrations --check",
+    "pytest{env:HATCH_TEST_ARGS:} {args}",
+    "pytest -m custom_ds --ds=tests.test_app.settings_custom_ds {args}",
+    "pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds {args}",
+]
+run-cov = [
+    "./tests/manage.py makemigrations --check",
+    "pytest --cov{env:HATCH_TEST_ARGS:} {args}",
+    "pytest -m custom_ds --ds=tests.test_app.settings_custom_ds {args}",
+    "pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds {args}",
+]
+cov-combine = "coverage combine"
+cov-report = [
+    "coverage report",
+    "coverage xml",
+]
+
+[tool.hatch.envs.hatch-uv]
+dependencies = [
+  "uv>=0.11.0",
+]
+[tool.uv]
+exclude-newer = "14 days"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"

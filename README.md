@@ -72,20 +72,20 @@ Open htmlcov/index.html for the coverage report.
 
 ### Running tests against multiple environments
 
-You can run the tests against multiple environments by using [tox](https://tox.readthedocs.io/en/latest/).
-Install `tox` globally and run:
+You can run the tests against multiple environments by using [hatch](https://hatch.pypa.io/).
+Install `hatch` globally and run:
 
 ```bash
-tox
+hatch test --all
 ```
 
-Use the `-f` option to specify target environments.
+Use the `-py` and `-i` options to target specific environments.
 
 ```bash
 # Target only Python 3.10 environments
-tox -f py310
-# Target Python 3.10 and Django 4.2
-tox -f py310 django42
+hatch test --python 3.10
+# Target Python 3.10 and Django 5.2
+hatch test --python 3.10 -i django=5.2
 ```
 
 

@@ -1,0 +1,7 @@
+/* Organization tree indentation - driven by --orghierarchy-indent set via JS from data-indent-level/data-indent-size */
+.orghierarchy-indent {
+    padding-left: var(--orghierarchy-indent, 0px);
+}
+
+/* Affiliated organization highlight */
+.orghierarchy-affiliated { color: red; }

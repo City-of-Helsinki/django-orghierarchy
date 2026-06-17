@@ -608,8 +608,14 @@ class TestOrganizationAdmin(TestCase):
         request = self.factory.get("/fake-url/")
         request.user = self.admin
 
-        self.assertNotIn("color: red;", oa.indented_title(self.organization))
-        self.assertIn("color: red;", oa.indented_title(self.affiliated_organization))
+        title = oa.indented_title(self.organization)
+        self.assertIn('class="orghierarchy-indent"', title)
+        self.assertIn('data-indent-level="', title)
+        self.assertIn('data-indent-size="', title)
+        self.assertNotIn("orghierarchy-affiliated", title)
+
+        affiliated_title = oa.indented_title(self.affiliated_organization)
+        self.assertIn("orghierarchy-affiliated", affiliated_title)
 
     def test_has_change_permission(self):
         normal_admin = make_admin(username="normal_admin", is_superuser=False)

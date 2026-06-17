@@ -200,6 +200,10 @@ class OrganizationAdmin(DraggableMPTTAdmin):
     list_display = (*DraggableMPTTAdmin.list_display, "identifier", "classification_id")
     list_filter = ("data_source",)
 
+    class Media:
+        css = {"all": ["django_orghierarchy/css/admin.css"]}
+        js = ["django_orghierarchy/js/admin.js"]
+
     # these fields may not be changed at all in existing organizations
     existing_readonly_fields = ("id", "data_source", "origin_id", "internal_type")
     # these fields may not be changed at all in protected organizations
@@ -280,17 +284,21 @@ class OrganizationAdmin(DraggableMPTTAdmin):
         obj.save()
 
     def indented_title(self, item):
-        """
-        Override base method to add custom styles for affiliated organizations
-        """
-        additional_styles = ""
-        if item.internal_type == Organization.AFFILIATED:
-            additional_styles = "color: red;"
-
+        level = item._mpttfield("level")
+        extra_class = (
+            " orghierarchy-affiliated"
+            if item.internal_type == Organization.AFFILIATED
+            else ""
+        )
+        template = (
+            '<div class="orghierarchy-indent{}"'
+            ' data-indent-level="{}" data-indent-size="{}">{}</div>'
+        )
         return format_html(
-            '<div style="text-indent:{}px; {}">{}</div>',
-            item._mpttfield("level") * self.mptt_level_indent,
-            additional_styles,
+            template,
+            extra_class,
+            level,
+            self.mptt_level_indent,
             item,
         )
 

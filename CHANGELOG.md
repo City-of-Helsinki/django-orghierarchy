@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.6.2...django-orghierarchy-v0.7.0) (2026-06-25)
+
+
+### Features
+
+* Move inline styles into a style file ([c403644](https://github.com/City-of-Helsinki/django-orghierarchy/commit/c40364459c0f1404570b9a7b55d5d616c127e665))
+
 ## [0.6.2](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.6.1...django-orghierarchy-v0.6.2) (2025-11-05)
 
 

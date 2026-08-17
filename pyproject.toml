@@ -108,11 +108,11 @@ run = [
 ]
 run-cov = [
     "./tests/manage.py makemigrations --check",
-    "pytest --cov{env:HATCH_TEST_ARGS:} {args}",
-    "pytest -m custom_ds --ds=tests.test_app.settings_custom_ds {args}",
-    "pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds {args}",
+    "coverage run -m pytest{env:HATCH_TEST_ARGS:} {args}",
+    "coverage run -m pytest -m custom_ds --ds=tests.test_app.settings_custom_ds {args}",
+    "coverage run -m pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds {args}",
 ]
-cov-combine = "coverage combine"
+cov-combine = "coverage combine --append"
 cov-report = [
     "coverage report",
     "coverage xml",

@@ -3,6 +3,9 @@ name: Continuous integration
 env:
   DEFAULT_PYTHON: "3.10"
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
@@ -18,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Run commitlint
         uses: wagoid/commitlint-github-action@3d28780bbf0365e29b144e272b2121204d5be5f3  # v6.1.2
 
@@ -27,6 +32,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Setup Python ${{ env.DEFAULT_PYTHON }}
       uses: actions/setup-python@v5
       with:
@@ -44,6 +51,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -56,10 +66,6 @@ jobs:
 
       - name: Run tests
         run: hatch test --cover --python ${{ matrix.python_version }}
-
-      - name: Override coverage report source path for SonarQube Cloud
-        if: ${{ matrix.python_version == env.DEFAULT_PYTHON }}
-        run: sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.xml
 
       - name: SonarQube Cloud Scan
         if: ${{ matrix.python_version == env.DEFAULT_PYTHON }}
@@ -74,6 +80,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

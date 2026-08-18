@@ -61,6 +61,13 @@ source = ["django_orghierarchy"]
 omit = ["**/migrations/*"]
 parallel = true
 
+[tool.coverage.report]
+omit = [
+    "*site-packages*",
+    "*tests*",
+]
+show_missing = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["django_orghierarchy"]
 
@@ -112,7 +119,7 @@ run-cov = [
     "coverage run -m pytest -m custom_ds --ds=tests.test_app.settings_custom_ds {args}",
     "coverage run -m pytest -m custom_pk_ds --ds=tests.test_app.settings_custom_pk_ds {args}",
 ]
-cov-combine = "coverage combine --append"
+cov-combine = "coverage combine"
 cov-report = [
     "coverage report",
     "coverage xml",

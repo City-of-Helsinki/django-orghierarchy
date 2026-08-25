@@ -7,34 +7,43 @@ on:
     - cron: '1 0 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # 4.4.1
         id: release
-      # Build and publish to PyPI
-      - name: Checkout
-        uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.release_created }}
-      - name: Set up Python
-        uses: actions/setup-python@v5
+
+  build:
+    name: Build package
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    permissions:
+      contents: read
+    uses: City-of-Helsinki/.github/.github/workflows/build-python-dists.yml@main
+    with:
+      python-version: "3.10"
+
+  publish:
+    name: Publish to PyPI
+    needs: [release-please, build]
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Download the distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          python-version: "3.10"
-        if: ${{ steps.release.outputs.release_created }}
-      - name: Install dependencies
-        run: pip install hatch
-        if: ${{ steps.release.outputs.release_created }}
-      - name: Build
-        run: hatch build
-        if: ${{ steps.release.outputs.release_created }}
+          name: ${{ needs.build.outputs.artifact_name }}
+          path: dist/
       - name: Publish
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # 1.14.2
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           verbose: true

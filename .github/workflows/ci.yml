@@ -25,17 +25,6 @@ jobs:
 
   build:
     name: Build package
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install hatch
-        run: pip install hatch
-      - name: Build
-        run: hatch build
+    uses: City-of-Helsinki/.github/.github/workflows/build-python-dists.yml@main
+    with:
+      python-version: "3.10"

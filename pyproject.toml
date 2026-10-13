@@ -103,7 +103,7 @@ django = ["6.0"]
 
 [tool.hatch.envs.hatch-test.overrides]
 matrix.django.dependencies = [
-    { value = "django~={matrix:django}" },
+    { value = "django=={matrix:django}.*" },
 ]
 
 [tool.hatch.envs.hatch-test.scripts]

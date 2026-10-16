@@ -2,7 +2,7 @@
 
 Reusable Django application for hierarchical organizations
 
-Requires Python 3.11+.
+Requires Python 3.11+. Supports Django 5.2 and 6.0.
 
 # Installation
 

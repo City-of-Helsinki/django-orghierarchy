@@ -2,6 +2,8 @@
 
 Reusable Django application for hierarchical organizations
 
+Requires Python 3.11+.
+
 # Installation
 
 1. `pip install django-orghierarchy`
@@ -82,10 +84,10 @@ hatch test --all
 Use the `-py` and `-i` options to target specific environments.
 
 ```bash
-# Target only Python 3.10 environments
-hatch test --python 3.10
-# Target Python 3.10 and Django 5.2
-hatch test --python 3.10 -i django=5.2
+# Target only Python 3.11 environments
+hatch test --python 3.11
+# Target Python 3.11 and Django 5.2
+hatch test --python 3.11 -i django=5.2
 ```
 
 

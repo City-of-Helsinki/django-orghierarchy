@@ -28,7 +28,7 @@ jobs:
       contents: read
     uses: City-of-Helsinki/.github/.github/workflows/build-python-dists.yml@main
     with:
-      python-version: "3.10"
+      python-version: "3.11"
 
   publish:
     name: Publish to PyPI

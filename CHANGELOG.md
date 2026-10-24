@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.1](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.7.0...django-orghierarchy-v0.7.1) (2026-10-24)
+
+
+### Dependencies
+
+* Add support for Django 6.1 ([0bb5862](https://github.com/City-of-Helsinki/django-orghierarchy/commit/0bb58620d77338f2ee1e1ec762cdd23e17e80063))
+* Add support for Python 3.15 ([1d82735](https://github.com/City-of-Helsinki/django-orghierarchy/commit/1d827356b2c4edb14ffb3fd7eb4611bb06eee475))
+* Drop support for Django &lt;5.2 ([01ea31d](https://github.com/City-of-Helsinki/django-orghierarchy/commit/01ea31d1517f4818d8072ec7d9622de740e6afde))
+* Drop support for Python 3.10 ([1df90ec](https://github.com/City-of-Helsinki/django-orghierarchy/commit/1df90ec148a135c9cd519ee838f41413c25608c2))
+
 ## [0.7.0](https://github.com/City-of-Helsinki/django-orghierarchy/compare/django-orghierarchy-v0.6.2...django-orghierarchy-v0.7.0) (2026-06-25)
 
 

@@ -132,8 +132,9 @@ cov-report = [
 
 [tool.hatch.envs.hatch-uv]
 dependencies = [
-  "uv>=0.11.0",
+  "uv>=0.13.5",
 ]
+
 [tool.uv]
 exclude-newer = "14 days"
 
